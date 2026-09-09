@@ -23,6 +23,29 @@
   </script>
   <style>
     .gradient-bg { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
+      .card-shadow {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+      }
+      /* === ANIMASI LOADING BARU === */
+      .loading-spin {
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .tombol-sedang-memuat {
+        opacity: 0.6;
+        pointer-events: none;
+        position: relative;
+      }
   </style>
 </head>
 <body class="bg-prim-50">
@@ -32,6 +55,14 @@
   </nav>
 
   <main class="max-w-lg mx-auto p-4" data-aos="fade-up">
+      <!-- === INDIKATOR LOADING === -->
+  <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-3">
+      <i class="fa-solid fa-circle-notch text-3xl text-prim-600 loading-spin"></i>
+      <span class="text-gray-700 font-medium">Sedang memproses...</span>
+    </div>
+  </div>
+    
     <div class="bg-white rounded-2xl shadow-lg p-6 space-y-4">
       <div>
         <label class="text-sm text-gray-500">Nama</label>
@@ -76,6 +107,13 @@
   </main>
 
   <script>
+        // === FUNGSI TAMPIL/SEMBUNYIKAN LOADING ===
+    function tampilkanLoading() {
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+    }
+    function sembunyikanLoading() {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }
     // === GANTI DENGAN URL DEPLOYMENT-MU ===
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxPG7wWRSC15XhG2_-Faful-IjgZOdMD3KT1aVdXmvz9HCfDGw5kO0oQvm4SOvY5Tlj/exec";
     const SITE_URL = window.location.href.split('?')[0];
@@ -89,6 +127,7 @@
     });
 
     async function muatData() {
+      tampilkanLoading();
       const res = await fetch(GAS_URL, {
         method:'POST',
         body:JSON.stringify({ aksi:'detail', id })
@@ -106,9 +145,11 @@
         width: 200,
         height: 200
       });
+      sembunyikanLoading();
     }
 
     async function simpan() {
+      tampilkanLoading();
       await fetch(GAS_URL, {
         method:'POST',
         body:JSON.stringify({
@@ -122,14 +163,17 @@
       });
       alert('Data berhasil diperbarui!');
       location.href='index.html';
+      sembunyikanLoading();
     }
 
     async function hapus() {
+      tampilkanLoading();
       if(confirm('Yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan!')) {
         await fetch(GAS_URL, { method:'POST', body:JSON.stringify({ aksi:'hapus', id }) });
         alert('Data telah dihapus!');
         location.href='index.html';
       }
+      sembunyikanLoading();
     }
 
     function goBack() {
