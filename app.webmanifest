@@ -1,0 +1,22 @@
+{
+  "name": "Data Pembagian",
+  "short_name": "DataBagian",
+  "description": "Aplikasi Input Data Pembagian",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0fdf4",
+  "theme_color": "#16a34a",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2991/2991110.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2991/2991110.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
