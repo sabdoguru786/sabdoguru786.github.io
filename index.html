@@ -486,7 +486,6 @@
               d.jenis === 'Salikah' ? 'bg-pink-100 text-pink-700' : 'bg-sky-100 text-sky-700'
             }">${d.jenis || 'Umum'}</span>
           </td>
-          <td class="p-3">${d.alamat || '-'}</td>  <!-- ❌ HAPUS BARIS INI -->
           <td class="p-3 text-center">
             <button onclick="event.stopPropagation(); toggleStatus('${d.id}','${d.status}')" 
               class="text-xl">
