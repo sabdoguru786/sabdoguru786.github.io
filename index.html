@@ -144,7 +144,7 @@
         <div>
           <label class="text-sm text-gray-500">Jenis</label>
           <select id="filterJenis" onchange="terapkanFilter()" class="w-full p-2 border rounded-lg mt-1">
-            <option value="">Semua (Umum/Salikin/Salikah)</option>
+            <option value="">Semua</option>
             <option value="Umum">Umum</option>
             <option value="Salikin">Salikin</option>
             <option value="Salikah">Salikah</option>
@@ -176,7 +176,6 @@
             <th class="p-3 text-left rounded-tl-lg">No</th>
             <th class="p-3 text-left">Nama</th>
             <th class="p-3 text-left">Jenis</th>
-            <th class="p-3 text-left">Alamat</th>
             <th class="p-3 text-center">Status</th>
             <th class="p-3 text-center rounded-tr-lg">Aksi</th>
           </tr>
@@ -558,7 +557,7 @@
     function tampilkanTombolPasang() {
       if (!pemasangPWA) return;
       const tombol = document.createElement('button');
-      tombol.className = 'fixed top-20 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-30 hover:bg-prim-50';
+      tombol.className = 'fixed top-10 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-30 hover:bg-prim-50';
       tombol.innerHTML = '<i class="fa-solid fa-download mr-2"></i>Pasang Aplikasi';
       tombol.onclick = async () => {
         tombol.remove();
