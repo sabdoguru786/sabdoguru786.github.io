@@ -16,6 +16,13 @@
   <!-- Hash Password -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/2.2.1/forge.min.js"></script>
 
+    <!-- PWA Manifest -->
+  <link rel="manifest" href="app.webmanifest" />
+  <meta name="theme-color" content="#16a34a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Data Pembagian" />
+
   <script>
     tailwind.config = {
       theme: {
@@ -147,7 +154,20 @@
       </table>
     </div>
   </main>
+  <!-- Modal Scan QR -->
+  <div id="scanModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+    <div class="bg-white rounded-2xl p-4 w-full max-w-md shadow-2xl">
+      <h3 class="text-lg font-bold text-center text-prim-700 mb-3">Pindai Kode QR</h3>
+      <video id="qrVideo" class="w-full rounded-lg bg-black" autoplay playsinline></video>
+      <canvas id="qrCanvas" class="hidden"></canvas>
+      <div class="flex gap-3 mt-4">
+        <button onclick="tutupScanQR()" class="flex-1 py-2 border rounded-lg">Tutup</button>
+      </div>
+    </div>
+  </div>
 
+  <!-- QR Scanner Library -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <!-- Menu Bawah HP -->
   <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-40">
     <div class="flex justify-around items-center py-2">
@@ -411,6 +431,70 @@
         loadData('all');
       }
     });
+
+        // === SCAN QR DENGAN KAMERA ===
+    let kameraStream = null;
+    let pemindaiAktif = false;
+
+    async function bukaScanQR() {
+      document.getElementById('scanModal').classList.remove('hidden');
+      pemindaiAktif = true;
+      const video = document.getElementById('qrVideo');
+      try {
+        kameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        video.srcObject = kameraStream;
+        video.onloadedmetadata = () => {
+          video.play();
+          pindaiQR();
+        };
+      } catch (err) {
+        alert('Tidak dapat mengakses kamera: ' + err.message);
+        tutupScanQR();
+      }
+    }
+
+    function tutupScanQR() {
+      document.getElementById('scanModal').classList.add('hidden');
+      pemindaiAktif = false;
+      if (kameraStream) {
+        kameraStream.getTracks().forEach(t => t.stop());
+        kameraStream = null;
+      }
+    }
+
+    function pindaiQR() {
+      if (!pemindaiAktif) return;
+      const video = document.getElementById('qrVideo');
+      const canvas = document.getElementById('qrCanvas');
+      const ctx = canvas.getContext('2d');
+      if (video.videoWidth === 0) return setTimeout(pindaiQR, 100);
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const kode = jsQR(imgData.data, canvas.width, canvas.height);
+
+      if (kode) {
+        tutupScanQR();
+        // Buka hasil pindahan -> ambil ID dari URL
+        const url = kode.data;
+        const params = new URLSearchParams(url.split('?')[1]);
+        const id = params.get('id');
+        if (id) {
+          window.location.href = url;
+        } else {
+          alert('QR tidak berisi data yang valid');
+        }
+        return;
+      }
+      setTimeout(pindaiQR, 300);
+    }
+
+    // Ganti tombol scan QR di menu bawah agar memanggil fungsi kamera
+    document.querySelector('button:has(.fa-qrcode)').setAttribute('onclick', 'bukaScanQR()');
   </script>
 </body>
 </html>
