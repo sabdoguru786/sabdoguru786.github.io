@@ -299,7 +299,7 @@
 
   <script>
     // === KONFIGURASI ===
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxPG7wWRSC15XhG2_-Faful-IjgZOdMD3KT1aVdXmvz9HCfDGw5kO0oQvm4SOvY5Tlj/exec"; // GANTI URL DEPLOYMENT-MU
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzlMntECN8Yl13KgTQuPiBPQ8zUtNRnJ7cDOOKwQCwOVBPydYgVZy6xR1vRmqkRtzKe/exec"; // GANTI URL DEPLOYMENT-MU
     const SITE_URL = window.location.origin + window.location.pathname.replace(/index\.html$/, '');
     let loggedIn = false;
     let currentFilter = "all";
@@ -596,7 +596,7 @@
     function tampilkanTombolPasang() {
       if (!pemasangPWA) return;
       const tombol = document.createElement('button');
-      tombol.className = 'fixed top-15 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-90 hover:bg-prim-50';
+      tombol.className = 'fixed top-15 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-30 hover:bg-prim-50';
       tombol.innerHTML = '<i class="fa-solid fa-download mr-2"></i>Pasang Aplikasi';
       tombol.onclick = async () => {
         tombol.remove();
