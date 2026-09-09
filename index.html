@@ -596,7 +596,7 @@
     function tampilkanTombolPasang() {
       if (!pemasangPWA) return;
       const tombol = document.createElement('button');
-      tombol.className = 'fixed top-10 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-9930 hover:bg-prim-50';
+      tombol.className = 'fixed top-15 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-3000 hover:bg-prim-50';
       tombol.innerHTML = '<i class="fa-solid fa-download mr-2"></i>Pasang Aplikasi';
       tombol.onclick = async () => {
         tombol.remove();
