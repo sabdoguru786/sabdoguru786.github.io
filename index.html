@@ -73,6 +73,29 @@
         box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
       }
     }
+    .card-shadow {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+      }
+      /* === ANIMASI LOADING BARU === */
+      .loading-spin {
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .tombol-sedang-memuat {
+        opacity: 0.6;
+        pointer-events: none;
+        position: relative;
+      }
   </style>
 </head>
 <body class="bg-prim-50 text-gray-800 font-sans">
@@ -114,6 +137,13 @@
 
   <!-- Konten Utama -->
   <main class="content-below-nav max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- === INDIKATOR LOADING === -->
+  <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-3">
+      <i class="fa-solid fa-circle-notch text-3xl text-prim-600 loading-spin"></i>
+      <span class="text-gray-700 font-medium">Sedang memproses...</span>
+    </div>
+  </div>
     <!-- Dashboard Card -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8 mt-4">
       <div data-aos="fade-up" onclick="loadData('all')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
@@ -381,6 +411,7 @@
 
     // Data CRUD
     async function loadData(filter = 'all') {
+      tampilkanLoading();
       if (!loggedIn) return;
       currentFilter = filter;
       const labels = {
@@ -400,6 +431,7 @@
       document.getElementById('totalSudah').textContent = res.stats.sudah || 0;
       document.getElementById('totalNone').textContent = res.stats.none || 0;
       document.getElementById('totalSalikin').textContent = res.stats.salikin || 0;
+      sembunyikanLoading();
     }
 
     function isiFilterAlamat() {
@@ -444,7 +476,7 @@
         tb.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Data kosong</td></tr>`;
         return;
       }
-      tb.innerHTML = arr.map((d, i) => `
+    tb.innerHTML = arr.map((d, i) => `
         <tr class="border-b hover:bg-prim-50">
           <td class="p-3">${i+1}</td>
           <td class="p-3">${d.nama || '-'}</td>
@@ -454,7 +486,7 @@
               d.jenis === 'Salikah' ? 'bg-pink-100 text-pink-700' : 'bg-sky-100 text-sky-700'
             }">${d.jenis || 'Umum'}</span>
           </td>
-          
+          <td class="p-3">${d.alamat || '-'}</td>  <!-- ❌ HAPUS BARIS INI -->
           <td class="p-3 text-center">
             <button onclick="event.stopPropagation(); toggleStatus('${d.id}','${d.status}')" 
               class="text-xl">
@@ -485,6 +517,7 @@
     }
 
     async function saveData() {
+      tampilkanLoading();
       const id = document.getElementById('editId').value || ('d' + Date.now());
       const data = {
         aksi: 'simpan',
@@ -497,15 +530,18 @@
       await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(data) });
       closeForm();
       loadData('all');
+      sembunyikanLoading();
     }
 
     async function toggleStatus(id, st) {
+      tampilkanLoading();
       const next = st === 'belum' ? 'sudah' : (st === 'sudah' ? 'none' : 'belum');
       await fetch(GAS_URL, {
         method: 'POST',
         body: JSON.stringify({ aksi: 'status', id, status: next })
       });
       loadData(currentFilter);
+      sembunyikanLoading();
     }
 
     function openDetail(id) {
@@ -530,6 +566,7 @@
       `).join('');
     }
     async function addUser() {
+      tampilkanLoading();
       const u = document.getElementById('newUser').value.trim();
       const p = document.getElementById('newPass').value.trim();
       if (!u || !p) return alert('Lengkapi data!');
@@ -538,11 +575,14 @@
       document.getElementById('newUser').value = '';
       document.getElementById('newPass').value = '';
       loadUsers();
+      sembunyikanLoading();
     }
     async function delUser(u) {
+      tampilkanLoading();
       if (confirm('Hapus pengguna ini?')) {
         await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ aksi: 'hapusUser', user: u }) });
         loadUsers();
+        sembunyikanLoading();
       }
     }
 
@@ -557,7 +597,7 @@
     function tampilkanTombolPasang() {
       if (!pemasangPWA) return;
       const tombol = document.createElement('button');
-      tombol.className = 'fixed top-10 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-30 hover:bg-prim-50';
+      tombol.className = 'fixed top-10 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-9930 hover:bg-prim-50';
       tombol.innerHTML = '<i class="fa-solid fa-download mr-2"></i>Pasang Aplikasi';
       tombol.onclick = async () => {
         tombol.remove();
@@ -583,6 +623,15 @@
         loadData('all');
       }
     });
+
+        // === FUNGSI TAMPIL/SEMBUNYIKAN LOADING ===
+    function tampilkanLoading() {
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+    }
+    function sembunyikanLoading() {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+    
   </script>
 </body>
 </html>
