@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aplikasi Data Pembagian</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+  <!-- AOS Animasi -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <!-- QR Code Generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Hash Password -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/2.2.1/forge.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            prim: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            },
+            sec: '#0ea5e9',
+            warn: '#f59e0b',
+            danger: '#ef4444',
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .gradient-bg {
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
+      }
+      .gradient-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+      }
+      .content-below-nav {
+        padding-top: 4.5rem;
+        padding-bottom: 5rem;
+      }
+      .card-shadow {
+        box-shadow: 0 8px 30px rgba(22, 163, 74, 0.12);
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 35px rgba(22, 163, 74, 0.18);
+      }
+    }
+  </style>
+</head>
+<body class="bg-prim-50 text-gray-800 font-sans">
+
+  <!-- Navbar -->
+  <nav class="gradient-bg fixed top-0 left-0 right-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <h1 class="text-white text-xl font-bold tracking-wide">Data Pembagian</h1>
+        <div class="hidden md:flex items-center gap-4">
+          <button onclick="openForm()" class="bg-white text-prim-700 px-4 py-2 rounded-lg font-medium hover:bg-prim-100 transition shadow">
+            <i class="fa-solid fa-plus mr-2"></i>Tambah Data
+          </button>
+          <button onclick="openUserMenu()" class="relative text-white text-xl p-2 rounded-full hover:bg-white/20 transition">
+            <i class="fa-solid fa-circle-user"></i>
+          </button>
+        </div>
+        <button onclick="openUserMenu()" class="md:hidden text-white text-xl p-2">
+          <i class="fa-solid fa-circle-user"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Dropdown Menu Profil -->
+    <div id="userMenu" class="hidden absolute right-4 mt-2 w-56 bg-white rounded-xl shadow-xl overflow-hidden z-50">
+      <div class="p-4 gradient-bg text-white">
+        <p class="font-semibold" id="adminName">Admin</p>
+        <p class="text-sm opacity-80">Pengguna Aktif</p>
+      </div>
+      <div class="p-2">
+        <button onclick="openUserManage()" class="w-full text-left px-4 py-2 hover:bg-prim-50 rounded flex items-center gap-2">
+          <i class="fa-solid fa-users text-prim-600"></i> Kelola Pengguna
+        </button>
+        <button onclick="logout()" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded flex items-center gap-2">
+          <i class="fa-solid fa-right-from-bracket"></i> Keluar
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Konten Utama -->
+  <main class="content-below-nav max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Dashboard Card -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 mt-4">
+      <div data-aos="fade-up" onclick="loadData('all')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer border-l-4 border-prim-500">
+        <p class="text-gray-500 text-sm">Total Data</p>
+        <h3 class="text-2xl font-bold text-prim-800" id="totalAll">0</h3>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="50" onclick="loadData('belum')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer border-l-4 border-warn">
+        <p class="text-gray-500 text-sm">Belum Diambil</p>
+        <h3 class="text-2xl font-bold text-warn" id="totalBelum">0</h3>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="100" onclick="loadData('sudah')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer border-l-4 border-sec">
+        <p class="text-gray-500 text-sm">Sudah Diambil</p>
+        <h3 class="text-2xl font-bold text-sec" id="totalSudah">0</h3>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="150" onclick="loadData('none')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer border-l-4 border-gray-400">
+        <p class="text-gray-500 text-sm">Tidak Ambil</p>
+        <h3 class="text-2xl font-bold text-gray-600" id="totalNone">0</h3>
+      </div>
+    </div>
+
+    <!-- Tabel Data -->
+    <div data-aos="fade-up" class="bg-white rounded-xl shadow-lg p-4 overflow-x-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-prim-800">Daftar Data</h2>
+        <span class="text-sm text-gray-500" id="filterInfo">Semua Data</span>
+      </div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-prim-100 text-prim-900">
+            <th class="p-3 text-left rounded-tl-lg">No</th>
+            <th class="p-3 text-left">Nama</th>
+            <th class="p-3 text-left">Status</th>
+            <th class="p-3 text-center rounded-tr-lg">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="dataTable">
+          <tr><td colspan="4" class="p-4 text-center text-gray-500">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Menu Bawah HP -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-40">
+    <div class="flex justify-around items-center py-2">
+      <button class="flex flex-col items-center text-gray-600 p-2">
+        <i class="fa-solid fa-qrcode text-xl"></i>
+        <span class="text-xs mt-1">Scan QR</span>
+      </button>
+      <button onclick="openForm()" class="flex flex-col items-center text-white gradient-bg rounded-full w-14 h-14 -mt-6 shadow-lg justify-center">
+        <i class="fa-solid fa-plus text-xl"></i>
+      </button>
+      <button onclick="openUserManage()" class="flex flex-col items-center text-gray-600 p-2">
+        <i class="fa-solid fa-users text-xl"></i>
+        <span class="text-xs mt-1">Pengguna</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modal Form Tambah/Edit Data -->
+  <div id="formModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl" data-aos="zoom-in">
+      <h3 class="text-xl font-bold text-prim-700 mb-4" id="formTitle">Tambah Data</h3>
+      <div class="space-y-3">
+        <input type="text" id="fNama" placeholder="Nama" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" required />
+        <textarea id="fAlamat" placeholder="Alamat" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none"></textarea>
+        <input type="hidden" id="editId" />
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button onclick="closeForm()" class="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">Batal</button>
+        <button onclick="saveData()" class="flex-1 py-2 gradient-bg text-white rounded-lg hover:opacity-90">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Login -->
+  <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl" data-aos="zoom-in">
+      <h3 class="text-2xl font-bold text-center text-prim-700 mb-6">Login Admin</h3>
+      <div class="space-y-4">
+        <input type="text" id="uName" placeholder="Nama Pengguna" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" />
+        <input type="password" id="uPass" placeholder="Kata Sandi" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" />
+      </div>
+      <button onclick="doLogin()" class="w-full mt-6 py-3 gradient-bg text-white rounded-lg font-medium hover:opacity-90">Masuk</button>
+      <p id="loginErr" class="text-red-500 text-sm mt-2 text-center hidden">Nama atau sandi salah!</p>
+    </div>
+  </div>
+
+  <!-- Modal Kelola Pengguna -->
+  <div id="userModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h3 class="text-xl font-bold text-prim-700 mb-4">Kelola Pengguna</h3>
+      <div class="space-y-3 border-b pb-4 mb-4">
+        <input type="text" id="newUser" placeholder="Nama Pengguna Baru" class="w-full p-3 border rounded-lg" />
+        <input type="password" id="newPass" placeholder="Kata Sandi" class="w-full p-3 border rounded-lg" />
+        <button onclick="addUser()" class="w-full py-2 gradient-bg text-white rounded-lg">Tambah Pengguna</button>
+      </div>
+      <div id="userList" class="space-y-2"></div>
+      <button onclick="closeUserManage()" class="w-full mt-4 py-2 border rounded-lg">Tutup</button>
+    </div>
+  </div>
+
+  <script>
+    // === KONFIGURASI ===
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwWZPczWIz1dn0mB2TyjnWiyPFqY_p0ZoJzh9a2Y4GzHO1Q7Sv8DgpX-V5odvaFZUzh/exec"; // GANTI DENGAN URL DEPLOYMENT-MU
+    const SITE_URL = window.location.origin + window.location.pathname;
+    let loggedIn = false;
+    let currentFilter = "all";
+
+    // Hash password
+    async function hashPass(pass) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(pass);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Login
+    async function doLogin() {
+      const u = document.getElementById('uName').value.trim();
+      const p = document.getElementById('uPass').value.trim();
+      const h = await hashPass(p);
+      const adminHash = await hashPass("admin123");
+      if (u === "admin" && h === adminHashHash) {
+        loggedIn = true;
+        localStorage.setItem('user', u);
+        document.getElementById('loginModal').classList.add('hidden');
+        loadData('all');
+        return;
+      }
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ aksi: 'cekUser', user: u, pass: h })
+      }).then(r => r.json());
+      if (res.ok) {
+        loggedIn = true;
+        localStorage.setItem('user', u);
+        document.getElementById('loginModal').classList.add('hidden');
+        loadData('all');
+      } else {
+        document.getElementById('loginErr').classList.remove('hidden');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('user');
+      location.reload();
+    }
+
+    function openUserMenu() {
+      document.getElementById('userMenu').classList.toggle('hidden');
+    }
+
+    // Data CRUD
+    async function loadData(filter = 'all') {
+      if (!loggedIn) return;
+      currentFilter = filter;
+      const labels = { all: 'Semua Data', belum: 'Belum Diambil', sudah: 'Sudah Diambil', none: 'Tidak Ambil' };
+      document.getElementById('filterInfo').textContent = labels[filter];
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ aksi: 'baca', filter })
+      }).then(r => r.json());
+      renderTable(res.data || []);
+      document.getElementById('totalAll').textContent = res.stats.all || 0;
+      document.getElementById('totalBelum').textContent = res.stats.belum || 0;
+      document.getElementById('totalSudah').textContent = res.stats.sudah || 0;
+      document.getElementById('totalNone').textContent = res.stats.none || 0;
+    }
+
+    function renderTable(arr) {
+      const tb = document.getElementById('dataTable');
+      if (!arr.length) {
+        tb.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">Data kosong</td></tr>`;
+        return;
+      }
+      tb.innerHTML = arr.map((d, i) => `
+        <tr class="border-b hover:bg-prim-50 cursor-pointer">
+          <td class="p-3">${i+1}</td>
+          <td class="p-3">${d.nama || '-'}</td>
+          <td class="p-3">
+            <button onclick="event.stopPropagation(); toggleStatus('${d.id}','${d.status}')" 
+              class="px-3 py-1 rounded-full text-sm font-medium ${
+                d.status === 'sudah' ? 'bg-green-100 text-green-700' :
+                d.status === 'belum' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
+              }">
+              ${d.status === 'sudah' ? '<i class="fa-solid fa-check mr-1"></i>Sudah' :
+                d.status === 'belum' ? '<i class="fa-solid fa-clock mr-1"></i>Belum' :
+                '<i class="fa-solid fa-ban mr-1"></i>Tidak Ambil'}
+            </button>
+          </td>
+          <td class="p-3 text-center">
+            <div class="flex justify-center gap-1">
+              <button onclick="event.stopPropagation(); openDetail('${d.id}')" class="text-sky-600 p-1 hover:bg-sky-100 rounded"><i class="fa-solid fa-eye"></i></button>
+              <button onclick="event.stopPropagation(); showQR('${d.id}')" class="text-indigo-600 p-1 hover:bg-indigo-100 rounded"><i class="fa-solid fa-qrcode"></i></button>
+              <button onclick="event.stopPropagation(); hapusData('${d.id}')" class="text-red-600 p-1 hover:bg-red-100 rounded"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openForm() {
+      document.getElementById('formModal').classList.remove('hidden');
+      document.getElementById('formTitle').textContent = 'Tambah Data';
+      document.getElementById('fNama').value = '';
+      document.getElementById('fAlamat').value = '';
+      document.getElementById('editId').value = '';
+    }
+    function closeForm() {
+      document.getElementById('formModal').classList.add('hidden');
+    }
+
+    async function saveData() {
+      const id = document.getElementById('editId').value || ('d' + Date.now());
+      const data = {
+        aksi: 'simpan',
+        id,
+        nama: document.getElementById('fNama').value.trim(),
+        alamat: document.getElementById('fAlamat').value.trim(),
+        status: 'belum'
+      };
+      await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(data) });
+      closeForm();
+      loadData(currentFilter);
+    }
+
+    async function toggleStatus(id, st) {
+      const next = st === 'belum' ? 'sudah' : (st === 'sudah' ? 'none' : 'belum');
+      await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ aksi: 'status', id, status: next })
+      });
+      loadData(currentFilter);
+    }
+
+    async function hapusData(id) {
+      if (confirm('Yakin hapus data ini?')) {
+        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ aksi: 'hapus', id }) });
+        loadData(currentFilter);
+      }
+    }
+
+    function openDetail(id) {
+      window.location.href = SITE_URL.replace('index.html', 'detail.html') + '?id=' + id;
+    }
+
+    function showQR(id) {
+      const url = SITE_URL.replace('index.html', 'detail.html') + '?id=' + id;
+      const qrDiv = document.createElement('div');
+      qrDiv.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/60';
+      qrDiv.innerHTML = `
+        <div class="bg-white p-6 rounded-2xl shadow-2xl text-center">
+          <h3 class="font-bold text-lg mb-4">QR Code Data</h3>
+          <div id="qrCanvas"></div>
+          <button onclick="this.closest('div.fixed').remove()" class="mt-4 px-4 py-2 bg-gray-200 rounded-lg">Tutup</button>
+        </div>
+      `;
+      document.body.appendChild(qrDiv);
+      new QRCode(qrDiv.querySelector('#qrCanvas'), { text: url, width: 200, height: 200 });
+    }
+
+    // Pengguna
+    function openUserManage() {
+      document.getElementById('userModal').classList.remove('hidden');
+      loadUsers();
+    }
+    function closeUserManage() {
+      document.getElementById('userModal').classList.add('hidden');
+    }
+    async function loadUsers() {
+      const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ aksi: 'bacaUser' }) }).then(r => r.json());
+      document.getElementById('userList').innerHTML = (res.users || []).map(u => `
+        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span>${u.user}</span>
+          <button onclick="delUser('${u.user}')" class="text-red-500 text-sm">Hapus</button>
+        </div>
+      `).join('');
+    }
+    async function addUser() {
+      const u = document.getElementById('newUser').value.trim();
+      const p = document.getElementById('newPass').value.trim();
+      if (!u || !p) return alert('Lengkapi data!');
+      const h = await hashPass(p);
+      await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ aksi: 'tambahUser', user: u, pass: h }) });
+      document.getElementById('newUser').value = '';
+      document.getElementById('newPass').value = '';
+      loadUsers();
+    }
+    async function delUser(u) {
+      if (confirm('Hapus pengguna ini?')) {
+        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ aksi: 'hapusUser', user: u }) });
+        loadUsers();
+      }
+    }
+
+    // Inisialisasi
+    document.addEventListener('DOMContentLoaded', () => {
+      AOS.init({ duration: 600, once: true });
+      if (localStorage.getItem('user')) {
+        document.getElementById('loginModal').classList.add('hidden');
+        loggedIn = true;
+        loadData('all');
+      }
+    });
+  </script>
+</body>
+</html>
