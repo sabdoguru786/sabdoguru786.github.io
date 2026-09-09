@@ -175,7 +175,7 @@
           <tr class="bg-prim-100 text-prim-900">
             <th class="p-3 text-left rounded-tl-lg">No</th>
             <th class="p-3 text-left">Nama</th>
-            <th class="p-3 text-left">Jenis</th>
+            <th class="p-3 text-left">Jama'ah</th>
             <th class="p-3 text-center">Status</th>
             <th class="p-3 text-center rounded-tr-lg">Aksi</th>
           </tr>
@@ -454,7 +454,7 @@
               d.jenis === 'Salikah' ? 'bg-pink-100 text-pink-700' : 'bg-sky-100 text-sky-700'
             }">${d.jenis || 'Umum'}</span>
           </td>
-          <td class="p-3">${d.alamat || '-'}</td>
+          
           <td class="p-3 text-center">
             <button onclick="event.stopPropagation(); toggleStatus('${d.id}','${d.status}')" 
               class="text-xl">
