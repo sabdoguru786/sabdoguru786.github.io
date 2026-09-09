@@ -224,12 +224,12 @@
     }
 
     // Login
-    async function doLogin() {
+        async function doLogin() {
       const u = document.getElementById('uName').value.trim();
       const p = document.getElementById('uPass').value.trim();
       const h = await hashPass(p);
       const adminHash = await hashPass("admin123");
-      if (u === "admin" && h === adminHashHash) {
+      if (u === "admin" && h === adminHash) {
         loggedIn = true;
         localStorage.setItem('user', u);
         document.getElementById('loginModal').classList.add('hidden');
