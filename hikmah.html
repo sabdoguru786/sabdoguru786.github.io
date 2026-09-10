@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hikmah — PAS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            prim: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d' },
+            sec:'#0ea5e9', warn:'#f59e0b', danger:'#ef4444'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
+    .card-shadow { box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+    .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.18); }
+    .loading-spin { animation: spin 0.8s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .kartu-kategori { border: 2px solid transparent; transition: border-color .2s ease, background-color .2s ease; }
+    .kartu-kategori.kategori-aktif { border-color: #16a34a; background: #f0fdf4; }
+
+    /* Bingkai ornamen kalimat mutiara (Kalam Hikmah) */
+    .bingkai-mutiara {
+      position: relative;
+      background: linear-gradient(160deg, #ffffff 0%, #f0fdf4 100%);
+      border: 3px double #16a34a;
+      border-radius: 1.5rem;
+      padding: 2.5rem 2rem;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(22, 163, 74, 0.15);
+    }
+    .bingkai-mutiara::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 1px solid #86efac;
+      border-radius: 1.1rem;
+      pointer-events: none;
+    }
+    .hiasan-kutip { position: absolute; font-size: 1.75rem; color: #bbf7d0; }
+    .hiasan-kutip.kiri { top: 1rem; left: 1.25rem; }
+    .hiasan-kutip.kanan { bottom: 1rem; right: 1.25rem; }
+    .teks-mutiara {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-style: italic;
+      font-size: 1.15rem;
+      line-height: 1.9;
+      color: #14532d;
+      max-width: 640px;
+      transition: opacity .25s ease;
+    }
+    .pengarang-mutiara {
+      margin-top: 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #16a34a;
+    }
+    @media (min-width: 640px) {
+      .teks-mutiara { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body class="bg-prim-50 text-gray-800 font-sans">
+
+  <nav class="gradient-bg fixed top-0 left-0 right-0 z-40 shadow-lg">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3 h-16">
+        <a href="index.html" class="text-white text-xl"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1 class="text-white text-lg font-bold">Hikmah</h1>
+      </div>
+    </div>
+  </nav>
+
+  <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-3">
+      <i class="fa-solid fa-circle-notch text-3xl text-prim-600 loading-spin"></i>
+      <span class="text-gray-700 font-medium">Sedang memproses...</span>
+    </div>
+  </div>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12">
+    <!-- Menu kategori: card kecil sejajar -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" data-aos="fade-up">
+      <button data-kat="Kalam Hikmah" onclick="pilihKategori('Kalam Hikmah')" class="kartu-kategori kategori-aktif bg-white rounded-xl p-4 text-center shadow card-shadow hover-lift">
+        <i class="fa-solid fa-quote-left text-2xl text-prim-600 mb-2"></i>
+        <p class="text-sm font-semibold">Kalam Hikmah</p>
+      </button>
+      <button data-kat="Nasehat Mursyid" onclick="pilihKategori('Nasehat Mursyid')" class="kartu-kategori bg-white rounded-xl p-4 text-center shadow card-shadow hover-lift">
+        <i class="fa-solid fa-hands-praying text-2xl text-prim-600 mb-2"></i>
+        <p class="text-sm font-semibold">Nasehat Mursyid</p>
+      </button>
+      <button data-kat="Rangkuman Kajian" onclick="pilihKategori('Rangkuman Kajian')" class="kartu-kategori bg-white rounded-xl p-4 text-center shadow card-shadow hover-lift">
+        <i class="fa-solid fa-book-open-reader text-2xl text-prim-600 mb-2"></i>
+        <p class="text-sm font-semibold">Rangkuman Kajian</p>
+      </button>
+      <button data-kat="Sabdo Guru" onclick="pilihKategori('Sabdo Guru')" class="kartu-kategori bg-white rounded-xl p-4 text-center shadow card-shadow hover-lift">
+        <i class="fa-solid fa-comment-dots text-2xl text-prim-600 mb-2"></i>
+        <p class="text-sm font-semibold">Sabdo Guru</p>
+      </button>
+    </div>
+
+    <div class="flex justify-between items-center mb-4">
+      <h2 id="judulKategori" class="text-lg font-bold text-prim-800">Kalam Hikmah</h2>
+      <button onclick="openFormHikmah()" class="bg-white text-prim-700 px-3 py-2 rounded-lg text-sm font-medium shadow hover:bg-prim-50">
+        <i class="fa-solid fa-plus mr-1"></i>Tulis
+      </button>
+    </div>
+
+    <!-- View khusus Kalam Hikmah: satu kalimat mutiara pada satu waktu, dibingkai ornamen -->
+    <div id="viewKalamHikmah" class="hidden">
+      <div class="flex justify-end mb-3">
+        <select id="filterTopikKalam" onchange="terapkanTopikKalam()" class="text-sm border rounded-lg p-2 bg-white">
+          <option value="">Semua Topik</option>
+        </select>
+      </div>
+
+      <div class="bingkai-mutiara">
+        <i class="fa-solid fa-quote-left hiasan-kutip kiri"></i>
+        <i class="fa-solid fa-quote-right hiasan-kutip kanan"></i>
+        <p id="teksKalamAktif" class="teks-mutiara">Memuat...</p>
+        <p id="pengarangKalamAktif" class="pengarang-mutiara"></p>
+      </div>
+
+      <div class="flex items-center justify-center gap-4 mt-6">
+        <button onclick="kalamSebelumnya()" class="w-11 h-11 rounded-full bg-white shadow hover:bg-prim-50 text-prim-700"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="text-center min-w-[140px]">
+          <p class="text-sm text-gray-500">Nomor <span id="kalamNomor" class="font-semibold text-prim-700">1</span> / <span id="kalamTotal">0</span></p>
+          <button onclick="toggleAutoKalam()" id="btnAutoKalam" class="text-xs text-prim-600 hover:underline mt-1">
+            <i class="fa-solid fa-shuffle mr-1"></i>Acak Otomatis: Aktif
+          </button>
+        </div>
+        <button onclick="kalamBerikutnya()" class="w-11 h-11 rounded-full bg-white shadow hover:bg-prim-50 text-prim-700"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+
+      <div class="flex items-center justify-center gap-2 mt-4">
+        <label class="text-xs text-gray-500">Interval acak otomatis:</label>
+        <select id="intervalKalam" onchange="ubahIntervalKalam()" class="text-xs border rounded-lg p-1">
+          <option value="5000">5 detik</option>
+          <option value="8000">8 detik</option>
+          <option value="15000">15 detik</option>
+          <option value="30000">30 detik</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="daftarArtikel" class="space-y-4"></div>
+  </main>
+
+  <!-- Modal Form Tambah/Edit Artikel -->
+  <div id="formModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto" data-aos="zoom-in">
+      <h3 id="formTitle" class="text-xl font-bold text-prim-700 mb-4">Tulis Artikel</h3>
+      <div class="space-y-3">
+        <div>
+          <label class="text-sm text-gray-500">Kategori</label>
+          <select id="fKategori" class="w-full p-3 border rounded-lg mt-1">
+            <option>Kalam Hikmah</option>
+            <option>Nasehat Mursyid</option>
+            <option>Rangkuman Kajian</option>
+            <option>Sabdo Guru</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm text-gray-500">Judul</label>
+          <input type="text" id="fJudul" class="w-full p-3 border rounded-lg mt-1" />
+        </div>
+        <div>
+          <label class="text-sm text-gray-500">Karangan / Disampaikan oleh <span class="text-gray-400">(opsional)</span></label>
+          <input type="text" id="fKarangan" class="w-full p-3 border rounded-lg mt-1" placeholder="mis. Syech ..." />
+        </div>
+        <div>
+          <label class="text-sm text-gray-500">Isi</label>
+          <textarea id="fIsi" rows="8" class="w-full p-3 border rounded-lg mt-1"></textarea>
+        </div>
+        <div>
+          <label class="text-sm text-gray-500">Topik <span class="text-gray-400">(opsional, mis. Sabar, Tawakal)</span></label>
+          <input type="text" id="fTopik" class="w-full p-3 border rounded-lg mt-1" />
+        </div>
+        <input type="hidden" id="fId" />
+      </div>
+      <p id="fCatatanPersetujuan" class="text-xs text-warn mt-2"></p>
+      <div class="flex gap-3 mt-4">
+        <button onclick="closeFormHikmah()" class="flex-1 py-2 border rounded-lg">Batal</button>
+        <button onclick="simpanHikmah()" class="flex-1 py-2 gradient-bg text-white rounded-lg">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Konfirmasi (pengganti confirm() bawaan browser) -->
+  <div id="konfirmModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl text-center">
+      <div class="w-14 h-14 bg-warn/10 text-warn rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <p id="konfirmPesan" class="text-gray-700 mb-6"></p>
+      <div class="flex gap-3">
+        <button id="konfirmBatal" class="flex-1 py-2 border rounded-lg">Batal</button>
+        <button id="konfirmYa" class="flex-1 py-2 bg-red-500 text-white rounded-lg font-medium">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzW5OJoQVZ-mJmQ0dC7Wvsg49BY6itH8niXebutRFFPqwU9PDAb9RJyeWeMIcWBg7uF/exec";
+    const peran = localStorage.getItem('role') || 'user';
+    let kategoriAktif = 'Kalam Hikmah';
+    let semuaArtikel = [];
+
+    async function panggilAPI(payload) {
+      const body = Object.assign({
+        user: localStorage.getItem('user') || '',
+        userPass: localStorage.getItem('sandiHash') || ''
+      }, payload);
+      try {
+        const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) });
+        return await res.json();
+      } catch (e) {
+        return { ok: false, msg: 'Tidak bisa terhubung ke server (cek URL Apps Script/koneksi internet)' };
+      }
+    }
+    function tampilkanLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
+    function sembunyikanLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
+    // === MODAL KONFIRMASI (pengganti confirm() bawaan browser) ===
+    function konfirmasi(pesan, labelYa) {
+      return new Promise((resolve) => {
+        document.getElementById('konfirmPesan').textContent = pesan;
+        document.getElementById('konfirmYa').textContent = labelYa || 'Ya, Lanjutkan';
+        document.getElementById('konfirmModal').classList.remove('hidden');
+        const tombolYa = document.getElementById('konfirmYa');
+        const tombolBatal = document.getElementById('konfirmBatal');
+        function bersihkan(hasil) {
+          document.getElementById('konfirmModal').classList.add('hidden');
+          tombolYa.removeEventListener('click', onYa);
+          tombolBatal.removeEventListener('click', onBatal);
+          resolve(hasil);
+        }
+        function onYa() { bersihkan(true); }
+        function onBatal() { bersihkan(false); }
+        tombolYa.addEventListener('click', onYa);
+        tombolBatal.addEventListener('click', onBatal);
+      });
+    }
+
+    function escapeHtml(str) {
+      return (str || '').toString()
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      AOS.init({ duration: 500, once: true });
+      if (!localStorage.getItem('user') || !localStorage.getItem('sandiHash')) {
+        location.href = 'index.html';
+        return;
+      }
+      muatArtikel();
+    });
+
+    function pilihKategori(kat) {
+      kategoriAktif = kat;
+      document.getElementById('judulKategori').textContent = kat;
+      document.querySelectorAll('.kartu-kategori').forEach((btn) => {
+        btn.classList.toggle('kategori-aktif', btn.dataset.kat === kat);
+      });
+
+      const isKalam = kat === 'Kalam Hikmah';
+      document.getElementById('viewKalamHikmah').classList.toggle('hidden', !isKalam);
+      document.getElementById('daftarArtikel').classList.toggle('hidden', isKalam);
+      hentikanTimerKalam();
+      if (isKalam) siapkanKalamHikmah();
+      else renderArtikel();
+    }
+
+    async function muatArtikel() {
+      tampilkanLoading();
+      const res = await panggilAPI({ aksi: 'bacaHikmah' });
+      if (res.ok) semuaArtikel = res.data || [];
+      else document.getElementById('daftarArtikel').innerHTML = `<p class="text-center text-red-500 py-8">${res.msg || 'Gagal memuat artikel'}</p>`;
+      pilihKategori(kategoriAktif);
+      sembunyikanLoading();
+    }
+
+    // === VIEW KHUSUS "KALIMAT MUTIARA" (KALAM HIKMAH) ===
+    // Muncul acak & bergantian otomatis; pakai tombol Next/Prev untuk pindah ke mode berurutan manual.
+    // Nomor urut & pilihan topik disimpan di localStorage supaya tetap sama walau logout lalu login lagi.
+    let kalamSemua = [];
+    let kalamTerfilter = [];
+    let kalamIndex = 0;
+    let kalamAutoAktif = localStorage.getItem('hikmahAutoKalam') !== 'nonaktif';
+    let kalamIntervalMs = parseInt(localStorage.getItem('hikmahIntervalKalam') || '8000', 10);
+    let kalamTimer = null;
+
+    function siapkanKalamHikmah() {
+      kalamSemua = semuaArtikel.filter((a) => a.kategori === 'Kalam Hikmah');
+      isiFilterTopikKalam();
+      document.getElementById('filterTopikKalam').value = localStorage.getItem('hikmahTopikKalam') || '';
+      document.getElementById('intervalKalam').value = String(kalamIntervalMs);
+      perbaruiTombolAuto();
+      terapkanTopikKalam(false);
+    }
+
+    function isiFilterTopikKalam() {
+      const topikUnik = [...new Set(kalamSemua.map((a) => a.topik).filter(Boolean))].sort();
+      const sel = document.getElementById('filterTopikKalam');
+      const sekarang = sel.value;
+      sel.innerHTML = '<option value="">Semua Topik</option>' + topikUnik.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+      sel.value = sekarang;
+    }
+
+    function terapkanTopikKalam(simpanPreferensi) {
+      const topik = document.getElementById('filterTopikKalam').value;
+      if (simpanPreferensi !== false) localStorage.setItem('hikmahTopikKalam', topik);
+      kalamTerfilter = topik ? kalamSemua.filter((a) => a.topik === topik) : kalamSemua;
+      document.getElementById('kalamTotal').textContent = kalamTerfilter.length;
+
+      const posisiTersimpan = parseInt(localStorage.getItem('hikmahPosisiKalam') || '0', 10);
+      kalamIndex = (posisiTersimpan >= 0 && posisiTersimpan < kalamTerfilter.length) ? posisiTersimpan : 0;
+      tampilkanKalam();
+      mulaiAutoKalam();
+    }
+
+    function tampilkanKalam() {
+      if (!kalamTerfilter.length) {
+        document.getElementById('teksKalamAktif').textContent = 'Belum ada Kalam Hikmah di topik ini.';
+        document.getElementById('pengarangKalamAktif').textContent = '';
+        document.getElementById('kalamNomor').textContent = '0';
+        return;
+      }
+      const a = kalamTerfilter[kalamIndex];
+      document.getElementById('teksKalamAktif').textContent = a.isi;
+      document.getElementById('pengarangKalamAktif').textContent = a.karangan ? `— ${a.karangan} —` : '';
+      document.getElementById('kalamNomor').textContent = kalamIndex + 1;
+      localStorage.setItem('hikmahPosisiKalam', String(kalamIndex));
+    }
+
+    function kalamBerikutnya() {
+      hentikanAutoKalam();
+      if (!kalamTerfilter.length) return;
+      kalamIndex = (kalamIndex + 1) % kalamTerfilter.length;
+      tampilkanKalam();
+    }
+    function kalamSebelumnya() {
+      hentikanAutoKalam();
+      if (!kalamTerfilter.length) return;
+      kalamIndex = (kalamIndex - 1 + kalamTerfilter.length) % kalamTerfilter.length;
+      tampilkanKalam();
+    }
+    function acakKalam() {
+      if (kalamTerfilter.length < 2) return;
+      let berikut;
+      do { berikut = Math.floor(Math.random() * kalamTerfilter.length); } while (berikut === kalamIndex);
+      kalamIndex = berikut;
+      tampilkanKalam();
+    }
+
+    function hentikanTimerKalam() {
+      if (kalamTimer) clearInterval(kalamTimer);
+      kalamTimer = null;
+    }
+    function mulaiAutoKalam() {
+      hentikanTimerKalam();
+      if (kalamAutoAktif) kalamTimer = setInterval(acakKalam, kalamIntervalMs);
+    }
+    function hentikanAutoKalam() {
+      // Pakai tombol Next/Prev -> otomatis pindah ke mode berurutan manual (bukan acak lagi)
+      kalamAutoAktif = false;
+      localStorage.setItem('hikmahAutoKalam', 'nonaktif');
+      hentikanTimerKalam();
+      perbaruiTombolAuto();
+    }
+    function toggleAutoKalam() {
+      kalamAutoAktif = !kalamAutoAktif;
+      localStorage.setItem('hikmahAutoKalam', kalamAutoAktif ? 'aktif' : 'nonaktif');
+      perbaruiTombolAuto();
+      mulaiAutoKalam();
+    }
+    function perbaruiTombolAuto() {
+      document.getElementById('btnAutoKalam').innerHTML =
+        `<i class="fa-solid fa-shuffle mr-1"></i>Acak Otomatis: ${kalamAutoAktif ? 'Aktif' : 'Nonaktif'}`;
+    }
+    function ubahIntervalKalam() {
+      kalamIntervalMs = parseInt(document.getElementById('intervalKalam').value, 10);
+      localStorage.setItem('hikmahIntervalKalam', String(kalamIntervalMs));
+      mulaiAutoKalam();
+    }
+
+    function renderArtikel() {
+      const list = semuaArtikel.filter((a) => a.kategori === kategoriAktif);
+      const wadah = document.getElementById('daftarArtikel');
+      if (!list.length) {
+        wadah.innerHTML = '<p class="text-center text-gray-400 py-8">Belum ada artikel di kategori ini.</p>';
+        return;
+      }
+      wadah.innerHTML = list.map((a) => `
+        <div class="bg-white rounded-xl shadow p-4" data-aos="fade-up">
+          <div class="flex justify-between items-start gap-2">
+            <h3 class="font-bold text-prim-800">${escapeHtml(a.judul)}</h3>
+            ${a.menungguPersetujuan ? '<span class="text-xs px-2 py-1 bg-warn/10 text-warn rounded-full whitespace-nowrap">Menunggu Persetujuan</span>' : ''}
+          </div>
+          ${a.karangan ? `<p class="text-xs text-gray-400 mt-1">Karangan: ${escapeHtml(a.karangan)}</p>` : ''}
+          ${a.topik ? `<span class="inline-block mt-1 text-xs px-2 py-0.5 bg-prim-100 text-prim-700 rounded-full">${escapeHtml(a.topik)}</span>` : ''}
+          <p class="text-sm text-gray-600 mt-3 whitespace-pre-line">${escapeHtml(a.isi)}</p>
+          <div class="flex justify-between items-center mt-3 pt-3 border-t">
+            <p class="text-xs text-gray-400">Ditulis oleh ${escapeHtml(a.penulis)} &middot; ${escapeHtml(a.tanggal)}</p>
+            <div class="flex gap-3">
+              <button onclick="editHikmah('${a.id}')" class="text-xs text-prim-600 hover:underline"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+              <button onclick="hapusArtikel('${a.id}')" class="text-xs text-red-500 hover:underline"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function catatanPersetujuan() {
+      return peran === 'admin' ? '' : 'Catatan: perubahan/tambahan akan menunggu persetujuan admin sebelum tampil ke semua orang.';
+    }
+
+    function openFormHikmah() {
+      document.getElementById('formTitle').textContent = 'Tulis Artikel';
+      document.getElementById('fId').value = '';
+      document.getElementById('fKategori').value = kategoriAktif;
+      document.getElementById('fJudul').value = '';
+      document.getElementById('fKarangan').value = '';
+      document.getElementById('fIsi').value = '';
+      document.getElementById('fTopik').value = '';
+      document.getElementById('fCatatanPersetujuan').textContent = catatanPersetujuan();
+      document.getElementById('formModal').classList.remove('hidden');
+    }
+
+    function editHikmah(id) {
+      const a = semuaArtikel.find((x) => x.id === id);
+      if (!a) return;
+      document.getElementById('formTitle').textContent = 'Edit Artikel';
+      document.getElementById('fId').value = a.id;
+      document.getElementById('fKategori').value = a.kategori;
+      document.getElementById('fJudul').value = a.judul || '';
+      document.getElementById('fKarangan').value = a.karangan || '';
+      document.getElementById('fIsi').value = a.isi || '';
+      document.getElementById('fTopik').value = a.topik || '';
+      document.getElementById('fCatatanPersetujuan').textContent = catatanPersetujuan();
+      document.getElementById('formModal').classList.remove('hidden');
+    }
+
+    function closeFormHikmah() {
+      document.getElementById('formModal').classList.add('hidden');
+    }
+
+    async function simpanHikmah() {
+      const id = document.getElementById('fId').value;
+      const kategori = document.getElementById('fKategori').value;
+      const judul = document.getElementById('fJudul').value.trim();
+      const karangan = document.getElementById('fKarangan').value.trim();
+      const isi = document.getElementById('fIsi').value.trim();
+      const topik = document.getElementById('fTopik').value.trim();
+      if (!judul) return alert('Judul wajib diisi');
+
+      tampilkanLoading();
+      const payload = id
+        ? { aksi: 'ubahHikmah', id, kategori, judul, karangan, isi, topik }
+        : { aksi: 'tambahHikmah', kategori, judul, karangan, isi, topik };
+      const res = await panggilAPI(payload);
+      sembunyikanLoading();
+      if (!res.ok) return alert(res.msg || 'Gagal menyimpan');
+      closeFormHikmah();
+      if (res.msg) alert(res.msg);
+      muatArtikel();
+    }
+
+    async function hapusArtikel(id) {
+      const setuju = await konfirmasi('Yakin ingin menghapus artikel ini?', 'Ya, Hapus');
+      if (!setuju) return;
+      tampilkanLoading();
+      const res = await panggilAPI({ aksi: 'hapusHikmah', id });
+      sembunyikanLoading();
+      if (!res.ok) return alert(res.msg || 'Gagal menghapus');
+      if (res.msg) alert(res.msg);
+      muatArtikel();
+    }
+  </script>
+</body>
+</html>
