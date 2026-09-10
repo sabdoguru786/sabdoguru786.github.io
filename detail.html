@@ -235,6 +235,16 @@
         return { ok: false, msg: 'Tidak bisa terhubung ke server (cek URL Apps Script/koneksi internet)' };
       }
     }
+
+    // Normalisasi URL foto Drive — link lama format "uc?export=view&id=..." kadang gagal
+    // tampil kalau dipasang di <img> lintas-situs. Ambil ID file-nya lalu pakai domain
+    // lh3.googleusercontent.com yang terbukti selalu langsung mengembalikan gambar.
+    function urlFotoAman(url) {
+      if (!url) return '';
+      const cocok = url.match(/[?&]id=([^&]+)/) || url.match(/\/d\/([^/?]+)/);
+      return cocok ? `https://lh3.googleusercontent.com/d/${cocok[1]}` : url;
+    }
+
     function bacaCacheLokal() {
       try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); } catch (e) { return []; }
     }
@@ -386,7 +396,7 @@
       const gambar = document.getElementById('fotoTampil');
       const huruf = document.getElementById('avatarHuruf');
       if (data.foto) {
-        gambar.src = data.foto;
+        gambar.src = urlFotoAman(data.foto);
         gambar.classList.remove('hidden');
         huruf.classList.add('hidden');
       } else {
@@ -399,7 +409,7 @@
       const previewIkon = document.getElementById('previewFotoIkon');
       document.getElementById('fFoto').value = '';
       if (data.foto) {
-        previewGambar.src = data.foto;
+        previewGambar.src = urlFotoAman(data.foto);
         previewGambar.classList.remove('hidden');
         previewIkon.classList.add('hidden');
       } else {
