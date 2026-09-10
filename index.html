@@ -368,6 +368,16 @@
       }
     }
 
+    // Normalisasi URL foto Drive — link lama format "uc?export=view&id=..." kadang gagal
+    // tampil kalau dipasang di <img> lintas-situs (Google kadang balas halaman konfirmasi,
+    // bukan gambar aslinya). Ambil ID file-nya lalu pakai domain lh3.googleusercontent.com
+    // yang terbukti selalu langsung mengembalikan gambar tanpa redirect.
+    function urlFotoAman(url) {
+      if (!url) return '';
+      const cocok = url.match(/[?&]id=([^&]+)/) || url.match(/\/d\/([^/?]+)/);
+      return cocok ? `https://lh3.googleusercontent.com/d/${cocok[1]}` : url;
+    }
+
     // === MODAL KONFIRMASI (pengganti confirm() bawaan browser) ===
     function konfirmasi(pesan, labelYa) {
       return new Promise((resolve) => {
@@ -600,7 +610,7 @@
           <td class="p-3">
             <div class="flex items-center gap-2">
               ${d.foto
-                ? `<img src="${d.foto}" class="w-7 h-9 object-cover rounded flex-shrink-0" alt="">`
+                ? `<img src="${urlFotoAman(d.foto)}" class="w-7 h-9 object-cover rounded flex-shrink-0" alt="">`
                 : `<span class="w-7 h-9 rounded bg-gray-100 flex items-center justify-center text-gray-300 flex-shrink-0"><i class="fa-solid fa-image text-xs"></i></span>`}
               <span>${d.nama || '-'}</span>
               ${d.ditandai ? `<span title="${d.ditandai}" class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600"><i class="fa-solid fa-triangle-exclamation"></i> Ditandai</span>` : ''}
