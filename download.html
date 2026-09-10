@@ -330,6 +330,14 @@
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
+    // Normalisasi URL foto Drive — link lama format "uc?export=view&id=..." kadang gagal
+    // tampil kalau dipasang di <img> lintas-situs. Ambil ID file-nya lalu pakai domain
+    // lh3.googleusercontent.com yang terbukti selalu langsung mengembalikan gambar.
+    function urlFotoAman(url) {
+      if (!url) return '';
+      const cocok = url.match(/[?&]id=([^&]+)/) || url.match(/\/d\/([^/?]+)/);
+      return cocok ? `https://lh3.googleusercontent.com/d/${cocok[1]}` : url;
+    }
     function labelStatus(s) {
       return { belum: 'Belum Diambil', sudah: 'Sudah Diambil', none: 'Tidak Ambil' }[s] || s;
     }
@@ -590,7 +598,7 @@
         const nilai = data ? (el.field === 'status' ? labelStatus(data.status) : data[el.field]) : `{{${el.field}}}`;
         return escapeHtml(nilai || '');
       }
-      if (el.tipe === 'foto') return data && data.foto ? `<img src="${data.foto}">` : '<i class="fa-solid fa-image text-gray-300"></i>';
+      if (el.tipe === 'foto') return data && data.foto ? `<img src="${urlFotoAman(data.foto)}">` : '<i class="fa-solid fa-image text-gray-300"></i>';
       if (el.tipe === 'qrData') return `<div class="qr-holder" data-qr-id="${data ? data.id : ''}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><span class="text-xs text-gray-400">QR</span></div>`;
       return '';
     }
@@ -610,7 +618,7 @@
       const dataContoh = modePratinjau ? dataTerfilterDL[0] : null;
 
       const latarHtml = desainTiket.latarUrl
-        ? `<img src="${desainTiket.latarUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:${desainTiket.latarOpacity / 100};pointer-events:none;">`
+        ? `<img src="${urlFotoAman(desainTiket.latarUrl)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:${desainTiket.latarOpacity / 100};pointer-events:none;">`
         : '';
 
       const elemenHtml = desainTiket.elemen.map(el => `
@@ -796,7 +804,7 @@
 
     function bangunHtmlTiket(orang) {
       return `<div class="tiket-cetak" style="width:${desainTiket.lebar}mm; height:${desainTiket.tinggi}mm; background:${gayaLatarTiket()};">
-        ${desainTiket.latarUrl ? `<img src="${desainTiket.latarUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:${desainTiket.latarOpacity / 100};">` : ''}
+        ${desainTiket.latarUrl ? `<img src="${urlFotoAman(desainTiket.latarUrl)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:${desainTiket.latarOpacity / 100};">` : ''}
         ${desainTiket.elemen.map(el => elemenCetakHtml(el, orang)).join('')}
       </div>`;
     }
