@@ -27,6 +27,9 @@
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     .tab-aktif { background: #16a34a; color: #fff; }
     #petaLokasi { height: 320px; border-radius: 0.75rem; z-index: 0; }
+    /* Class ini ditambah lewat JS (bukan statis di HTML), jadi harus ditulis manual —
+       Tailwind CDN cuma compile class yang ada di markup saat halaman dimuat */
+    #ikonFormUser.rotate-180 { transform: rotate(180deg); }
   </style>
 </head>
 <body class="bg-prim-50 text-gray-800 font-sans">
@@ -43,10 +46,25 @@
       <a href="index.html" class="text-xl"><i class="fa-solid fa-arrow-left"></i></a>
       <h1 class="text-lg font-bold">Setting Admin</h1>
     </div>
-    <button onclick="logout()" class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg">
-      <i class="fa-solid fa-right-from-bracket mr-1"></i>Keluar
-    </button>
+    <div class="flex items-center gap-2">
+      <a href="download.html" class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg" title="Download & Tiket">
+        <i class="fa-solid fa-download mr-1"></i><span class="hidden sm:inline">Download</span>
+      </a>
+      <button onclick="toggleNotifDropdown()" class="relative text-white text-lg p-2 rounded-full hover:bg-white/20">
+        <i class="fa-solid fa-bell"></i>
+        <span id="badgeNotif" class="hidden absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] leading-none px-1.5 py-1 rounded-full">0</span>
+      </button>
+      <button onclick="logout()" class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg">
+        <i class="fa-solid fa-right-from-bracket mr-1"></i>Keluar
+      </button>
+    </div>
   </nav>
+
+  <!-- Dropdown Notifikasi -->
+  <div id="notifDropdown" class="hidden fixed right-4 top-16 w-72 bg-white rounded-xl shadow-xl z-50 overflow-hidden">
+    <div class="p-3 border-b font-semibold text-prim-800">Menunggu Persetujuan</div>
+    <div id="notifIsi" class="p-2 space-y-1 text-sm"></div>
+  </div>
 
   <main class="max-w-4xl mx-auto p-4 pb-16">
 
@@ -72,22 +90,45 @@
       </div>
 
       <div class="bg-white rounded-xl card-shadow p-4">
-        <h2 class="font-bold text-prim-800 mb-3">Tambah Pengguna Baru</h2>
-        <div class="grid sm:grid-cols-4 gap-2">
-          <input type="text" id="newUser" placeholder="Nama pengguna" class="p-2 border rounded-lg sm:col-span-1" />
-          <input type="password" id="newPass" placeholder="Sandi" class="p-2 border rounded-lg sm:col-span-1" />
-          <select id="newRole" class="p-2 border rounded-lg sm:col-span-1">
-            <option value="user">User (lihat saja)</option>
-            <option value="subAdmin">Sub Admin (CRUD tanpa hapus)</option>
-            <option value="admin">Admin (akses penuh)</option>
-          </select>
-          <button onclick="tambahUserBaru()" class="p-2 gradient-bg text-white rounded-lg font-medium sm:col-span-1">Tambah</button>
+        <button type="button" onclick="toggleFormTambahUser()" class="w-full flex justify-between items-center text-left">
+          <h2 class="font-bold text-prim-800"><i class="fa-solid fa-user-plus mr-1"></i>Tambah Pengguna Baru</h2>
+          <i id="ikonFormUser" class="fa-solid fa-chevron-down transition-transform"></i>
+        </button>
+        <div id="wrapFormUser" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
+          <div class="pt-4 space-y-2">
+            <input type="text" id="newNamaLengkap" placeholder="Nama Lengkap" class="w-full p-2 border rounded-lg" />
+            <input type="text" id="newAlamat" placeholder="Alamat" class="w-full p-2 border rounded-lg" />
+            <div class="grid sm:grid-cols-2 gap-2">
+              <input type="text" id="newUser" placeholder="Username" class="p-2 border rounded-lg" />
+              <input type="password" id="newPass" placeholder="Sandi" class="p-2 border rounded-lg" />
+            </div>
+            <div class="grid sm:grid-cols-2 gap-2">
+              <select id="newJamaah" onchange="terapkanMunasiqBaru()" class="p-2 border rounded-lg">
+                <option value="Umum">Jama'ah: Umum</option>
+                <option value="Salikin">Jama'ah: Salikin</option>
+                <option value="Salikah">Jama'ah: Salikah</option>
+              </select>
+              <select id="newRole" class="p-2 border rounded-lg">
+                <option value="user">Role: User (lihat saja)</option>
+                <option value="subAdmin">Role: Sub Admin (CRUD tanpa hapus)</option>
+                <option value="admin">Role: Admin (akses penuh)</option>
+              </select>
+            </div>
+            <div id="wrapMunasiqBaru" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
+              <input type="text" id="newMunasiq" placeholder="Nama Munasiq" class="w-full p-2 border rounded-lg" />
+            </div>
+            <button onclick="tambahUserBaru()" class="w-full p-2 gradient-bg text-white rounded-lg font-medium">Tambah</button>
+            <p class="text-xs text-gray-400">Pengguna yang ditambahkan admin langsung aktif, tidak perlu approval.</p>
+          </div>
         </div>
-        <p class="text-xs text-gray-400 mt-2">Pengguna yang ditambahkan admin langsung aktif, tidak perlu approval.</p>
       </div>
 
       <div class="bg-white rounded-xl card-shadow p-4">
-        <h2 class="font-bold text-prim-800 mb-3">Semua Pengguna</h2>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="font-bold text-prim-800">Semua Pengguna</h2>
+          <span id="jumlahHasilUser" class="text-xs text-gray-400"></span>
+        </div>
+        <input type="text" id="cariUser" placeholder="🔍 Cari nama, Jama'ah, atau Munasiq..." oninput="terapkanPencarianUser()" class="w-full p-2 border rounded-lg mb-3" />
         <div id="listUser" class="space-y-2"><p class="text-sm text-gray-400">Memuat...</p></div>
       </div>
     </section>
@@ -207,6 +248,26 @@
 
   </main>
 
+  <!-- Modal Detail Pengguna -->
+  <div id="detailUserModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+      <h3 class="text-lg font-bold text-prim-800 mb-3">Detail Pengguna</h3>
+      <div id="detailUserIsi" class="space-y-1 text-sm mb-4"></div>
+      <div>
+        <label class="text-sm text-gray-500">Role</label>
+        <select id="detailUserRole" onchange="simpanRoleDariDetail()" class="w-full p-2 border rounded-lg mt-1">
+          <option value="user">User (lihat saja)</option>
+          <option value="subAdmin">Sub Admin (CRUD tanpa hapus)</option>
+          <option value="admin">Admin (akses penuh)</option>
+        </select>
+      </div>
+      <div class="flex gap-3 mt-4">
+        <button onclick="closeDetailUser()" class="flex-1 py-2 border rounded-lg">Tutup</button>
+        <button onclick="hapusUserDariDetail()" class="flex-1 py-2 bg-red-50 text-red-600 rounded-lg font-medium">Hapus</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Konfirmasi (pengganti confirm() bawaan browser) -->
   <div id="konfirmModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
     <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl text-center">
@@ -313,17 +374,39 @@
     }
 
     // === PENGGUNA ===
+    let semuaPenggunaAktif = [];
+    let jumlahPendingPengguna = 0;
+    let jumlahPendingHikmah = 0;
+
+    function toggleNotifDropdown() {
+      document.getElementById('notifDropdown').classList.toggle('hidden');
+    }
+    function perbaruiBadgeNotif() {
+      const total = jumlahPendingPengguna + jumlahPendingHikmah;
+      const badge = document.getElementById('badgeNotif');
+      badge.textContent = total;
+      badge.classList.toggle('hidden', total === 0);
+
+      const isi = [];
+      if (jumlahPendingPengguna > 0) isi.push(`<button onclick="pilihTab('pengguna'); toggleNotifDropdown();" class="w-full text-left p-2 hover:bg-prim-50 rounded">${jumlahPendingPengguna} pendaftar baru menunggu</button>`);
+      if (jumlahPendingHikmah > 0) isi.push(`<button onclick="pilihTab('hikmah'); toggleNotifDropdown();" class="w-full text-left p-2 hover:bg-prim-50 rounded">${jumlahPendingHikmah} tulisan Hikmah menunggu</button>`);
+      document.getElementById('notifIsi').innerHTML = isi.length ? isi.join('') : '<p class="text-gray-400 p-2">Tidak ada yang menunggu.</p>';
+    }
+
     async function muatPengguna() {
       const res = await panggilAPI({ aksi: 'bacaUser' });
       if (!res.ok) { document.getElementById('listUser').innerHTML = `<p class="text-sm text-red-500">${res.msg || 'Gagal memuat'}</p>`; return; }
       const users = res.users || [];
       const pending = users.filter(u => u.status !== 'aktif');
-      const aktif = users.filter(u => u.status === 'aktif');
+      semuaPenggunaAktif = users.filter(u => u.status === 'aktif');
+      jumlahPendingPengguna = pending.length;
+      perbaruiBadgeNotif();
 
       document.getElementById('listPending').innerHTML = pending.length ? pending.map(u => `
         <div class="flex justify-between items-start p-2 bg-warn/10 rounded-lg gap-2">
           <div>
             <p class="text-sm font-medium">${escapeHtml(u.user)}${u.namaLengkap ? ' — ' + escapeHtml(u.namaLengkap) : ''}</p>
+            ${u.alamat ? `<p class="text-xs text-gray-500">${escapeHtml(u.alamat)}</p>` : ''}
             ${u.jamaah ? `<p class="text-xs text-gray-500">Jama'ah: ${escapeHtml(u.jamaah)}${u.munasiq ? ' &middot; Munasiq: ' + escapeHtml(u.munasiq) : ''}</p>` : ''}
           </div>
           <div class="flex gap-2 flex-shrink-0">
@@ -333,33 +416,74 @@
         </div>
       `).join('') : '<p class="text-sm text-gray-400">Tidak ada pendaftar baru.</p>';
 
-      const labelRole = { admin: 'Admin', subAdmin: 'Sub Admin', user: 'User' };
-      document.getElementById('listUser').innerHTML = aktif.length ? aktif.map(u => `
-        <div class="flex justify-between items-center p-2 bg-gray-50 rounded-lg gap-2">
-          <span class="text-sm font-medium flex-1">${u.user}</span>
-          <select onchange="ubahRole('${u.user}', this.value)" class="text-xs border rounded-lg p-1">
-            <option value="user" ${u.role==='user'?'selected':''}>User</option>
-            <option value="subAdmin" ${u.role==='subAdmin'?'selected':''}>Sub Admin</option>
-            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-          </select>
-          <button onclick="tolakUser('${u.user}')" class="text-xs text-red-500"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      `).join('') : '<p class="text-sm text-gray-400">Belum ada pengguna.</p>';
+      terapkanPencarianUser();
     }
+
+    function terapkanPencarianUser() {
+      const kata = (document.getElementById('cariUser').value || '').trim().toLowerCase();
+      const hasil = kata
+        ? semuaPenggunaAktif.filter(u =>
+            (u.namaLengkap || u.user || '').toLowerCase().includes(kata) ||
+            (u.user || '').toLowerCase().includes(kata) ||
+            (u.jamaah || '').toLowerCase().includes(kata) ||
+            (u.munasiq || '').toLowerCase().includes(kata)
+          )
+        : semuaPenggunaAktif;
+
+      document.getElementById('jumlahHasilUser').textContent = `${hasil.length} hasil`;
+      document.getElementById('listUser').innerHTML = hasil.length ? hasil.map(u => `
+        <div class="flex justify-between items-center p-2 bg-gray-50 rounded-lg gap-2">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium truncate">${escapeHtml(u.namaLengkap || u.user)}</p>
+            <p class="text-xs text-gray-500 truncate">${escapeHtml(u.alamat || '-')}</p>
+          </div>
+          <button onclick="bukaDetailUser('${u.user}')" class="text-xs bg-prim-100 text-prim-700 px-3 py-1.5 rounded-lg flex-shrink-0">Detail</button>
+        </div>
+      `).join('') : '<p class="text-sm text-gray-400">Tidak ada hasil.</p>';
+    }
+
+    // === Form Tambah Pengguna: tersembunyi, dibuka lewat tombol (slidedown) ===
+    let formUserTerbuka = false;
+    function toggleFormTambahUser() {
+      formUserTerbuka = !formUserTerbuka;
+      const wrap = document.getElementById('wrapFormUser');
+      const ikon = document.getElementById('ikonFormUser');
+      if (formUserTerbuka) {
+        wrap.style.maxHeight = wrap.scrollHeight + 'px';
+        ikon.classList.add('rotate-180');
+      } else {
+        wrap.style.maxHeight = '0';
+        ikon.classList.remove('rotate-180');
+      }
+    }
+    function terapkanMunasiqBaru() {
+      const jamaah = document.getElementById('newJamaah').value;
+      const wrap = document.getElementById('wrapMunasiqBaru');
+      const perlu = jamaah === 'Salikin' || jamaah === 'Salikah';
+      wrap.style.maxHeight = perlu ? wrap.scrollHeight + 'px' : '0';
+      if (!perlu) document.getElementById('newMunasiq').value = '';
+    }
+
     async function tambahUserBaru() {
+      const namaLengkap = document.getElementById('newNamaLengkap').value.trim();
+      const alamat = document.getElementById('newAlamat').value.trim();
       const targetUser = document.getElementById('newUser').value.trim();
       const passRaw = document.getElementById('newPass').value;
+      const jamaah = document.getElementById('newJamaah').value;
+      const munasiq = document.getElementById('newMunasiq').value.trim();
       const role = document.getElementById('newRole').value;
-      if (!targetUser || !passRaw) return alert('Lengkapi nama pengguna & sandi');
+      if (!namaLengkap || !alamat || !targetUser || !passRaw) return alert('Lengkapi nama lengkap, alamat, username & sandi');
+      if ((jamaah === 'Salikin' || jamaah === 'Salikah') && !munasiq) return alert('Munasiq wajib diisi untuk Salikin/Salikah');
+
       tampilkanLoading();
       const encoder = new TextEncoder();
       const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(passRaw));
       const pass = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-      const res = await panggilAPI({ aksi: 'tambahUser', targetUser, pass, role });
+      const res = await panggilAPI({ aksi: 'tambahUser', targetUser, pass, role, namaLengkap, alamat, jamaah, munasiq });
       sembunyikanLoading();
       if (!res.ok) return alert(res.msg || 'Gagal menambah pengguna');
-      document.getElementById('newUser').value = '';
-      document.getElementById('newPass').value = '';
+      ['newNamaLengkap', 'newAlamat', 'newUser', 'newPass', 'newMunasiq'].forEach(id => document.getElementById(id).value = '');
+      toggleFormTambahUser();
       muatPengguna();
     }
     async function setujuiUser(targetUser) {
@@ -378,6 +502,39 @@
     async function ubahRole(targetUser, role) {
       await panggilAPI({ aksi: 'ubahRoleUser', targetUser, role });
       muatPengguna();
+    }
+
+    // === Detail Pengguna (aksi ganti role & hapus dipindah ke sini) ===
+    let userDetailAktif = '';
+    function bukaDetailUser(username) {
+      const u = semuaPenggunaAktif.find(x => x.user === username);
+      if (!u) return;
+      userDetailAktif = username;
+      const baris = [
+        ['Username', u.user],
+        ['Nama Lengkap', u.namaLengkap || '-'],
+        ['Alamat', u.alamat || '-'],
+        ["Jama'ah", u.jamaah || '-'],
+        ['Munasiq', u.munasiq || '-'],
+      ];
+      document.getElementById('detailUserIsi').innerHTML = baris.map(([label, nilai]) =>
+        `<div class="flex justify-between gap-2"><span class="text-gray-500">${label}</span><span class="font-medium text-gray-700 text-right">${escapeHtml(nilai)}</span></div>`
+      ).join('');
+      document.getElementById('detailUserRole').value = u.role || 'user';
+      document.getElementById('detailUserModal').classList.remove('hidden');
+    }
+    function closeDetailUser() {
+      document.getElementById('detailUserModal').classList.add('hidden');
+      userDetailAktif = '';
+    }
+    async function simpanRoleDariDetail() {
+      const role = document.getElementById('detailUserRole').value;
+      await ubahRole(userDetailAktif, role);
+    }
+    async function hapusUserDariDetail() {
+      const target = userDetailAktif;
+      closeDetailUser();
+      await tolakUser(target);
     }
 
     // === TENTANG KAMI ===
@@ -560,6 +717,8 @@
         return;
       }
       perbaruiBadgeHikmah(res.baru.length + res.editUsulan.length + res.hapusUsulan.length);
+      jumlahPendingHikmah = res.baru.length + res.editUsulan.length + res.hapusUsulan.length;
+      perbaruiBadgeNotif();
       const tombolSetujuiTolak = (id) => `
         <button onclick="setujuiArtikelHikmah('${id}')" class="text-xs bg-prim-600 text-white px-3 py-1.5 rounded-lg">Setujui</button>
         <button onclick="tolakArtikelHikmah('${id}')" class="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg">Tolak</button>`;
