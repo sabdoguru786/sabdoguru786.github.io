@@ -236,8 +236,15 @@
 
     // === TAB ===
     function pilihTab(nama) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-aktif'));
-      document.querySelector(`.tab-btn[data-tab="${nama}"]`).classList.add('tab-aktif');
+      // bg-white (Tailwind) harus dilepas dari tab yang aktif & dipasang lagi ke yang tidak aktif,
+      // kalau tidak dia menimpa warna hijau .tab-aktif (background jadi putih, teks putih jadi tak kelihatan)
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('tab-aktif');
+        b.classList.add('bg-white');
+      });
+      const tombolAktif = document.querySelector(`.tab-btn[data-tab="${nama}"]`);
+      tombolAktif.classList.add('tab-aktif');
+      tombolAktif.classList.remove('bg-white');
       ['pengguna','tentang','galeri','kegiatan','lokasi','lokal'].forEach(t => {
         document.getElementById('tab-' + t).classList.toggle('hidden', t !== nama);
       });
