@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Detail Data</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
@@ -232,7 +234,7 @@
         const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) });
         return await res.json();
       } catch (e) {
-        return { ok: false, msg: 'Tidak bisa terhubung ke server (cek URL Apps Script/koneksi internet)' };
+        return { ok: false, msg: 'Tidak bisa terhubung ke server. Cek URL Apps Script/koneksi internet.' };
       }
     }
 
