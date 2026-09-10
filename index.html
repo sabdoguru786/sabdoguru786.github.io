@@ -352,12 +352,18 @@
     }
 
     // Panggil backend dengan identitas pengguna otomatis disertakan (dipakai server untuk otorisasi)
+    // Selalu balikin objek {ok:false, msg} kalau gagal — jangan pernah lempar error mentah ke console
     async function panggilAPI(payload) {
       const body = Object.assign({
         user: localStorage.getItem('user') || '',
         userPass: localStorage.getItem('sandiHash') || ''
       }, payload);
-      return fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) }).then(r => r.json());
+      try {
+        const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) });
+        return await res.json();
+      } catch (e) {
+        return { ok: false, msg: 'Tidak bisa terhubung ke server (cek URL Apps Script/koneksi internet)' };
+      }
     }
 
     // === CACHE LOKAL (biar tidak nunggu koneksi Google Sheets tiap buka) ===
@@ -387,10 +393,17 @@
       const u = document.getElementById('uName').value.trim();
       const p = document.getElementById('uPass').value.trim();
       const h = await hashPass(p);
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ aksi: 'cekUser', user: u, pass: h })
-      }).then(r => r.json());
+      let res;
+      try {
+        res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ aksi: 'cekUser', user: u, pass: h })
+        }).then(r => r.json());
+      } catch (e) {
+        document.getElementById('loginErr').textContent = 'Tidak bisa terhubung ke server. Cek URL Apps Script/koneksi internet.';
+        document.getElementById('loginErr').classList.remove('hidden');
+        return;
+      }
       if (res.ok) {
         loggedIn = true;
         peran = res.role || 'admin';
