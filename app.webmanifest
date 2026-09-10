@@ -1,7 +1,7 @@
 {
   "name": "PAS",
-  "short_name": "DataBagian",
-  "description": "Aplikasi Input Data Pembagian",
+  "short_name": "PAS",
+  "description": "Aplikasi Input Data PAS",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f0fdf4",
