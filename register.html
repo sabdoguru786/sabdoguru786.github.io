@@ -68,6 +68,7 @@
     <div id="panelDaftar" class="hidden">
       <div id="formArea" class="space-y-3">
         <input type="text" id="rNamaLengkap" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" placeholder="Nama Lengkap" />
+        <input type="text" id="rAlamat" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" placeholder="Alamat" />
         <input type="text" id="rUser" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" placeholder="Username" />
         <div class="relative">
           <input type="password" id="rPass" class="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" placeholder="Kata Sandi" />
@@ -121,6 +122,14 @@
       const data = encoder.encode(pass);
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // index.html (Data Pembagian) khusus admin/subAdmin, ATAU role user yang jama'ahnya
+    // Salikin/Salikah dengan Munasiq "Brebes Selatan" — selain itu diarahkan ke hikmah.html
+    function bolehAksesIndex(role, jamaah, munasiq) {
+      if (role !== 'user') return true;
+      const munasiqCocok = (munasiq || '').trim().toLowerCase().includes('brebes selatan');
+      return (jamaah === 'Salikin' || jamaah === 'Salikah') && munasiqCocok;
     }
 
     function tampilkanLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
@@ -179,7 +188,8 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem('user') && localStorage.getItem('sandiHash')) {
-        location.href = 'index.html';
+        const tujuan = bolehAksesIndex(localStorage.getItem('role'), localStorage.getItem('jamaah'), localStorage.getItem('munasiq')) ? 'index.html' : 'hikmah.html';
+        location.href = tujuan;
         return;
       }
       const params = new URLSearchParams(location.search);
@@ -217,7 +227,11 @@
         localStorage.setItem('user', u);
         localStorage.setItem('sandiHash', h);
         localStorage.setItem('role', res.role || 'admin');
-        location.href = 'index.html';
+        localStorage.setItem('namaLengkap', res.namaLengkap || '');
+        localStorage.setItem('alamat', res.alamat || '');
+        localStorage.setItem('jamaah', res.jamaah || '');
+        localStorage.setItem('munasiq', res.munasiq || '');
+        location.href = bolehAksesIndex(res.role, res.jamaah, res.munasiq) ? 'index.html' : 'hikmah.html';
         return;
       }
       document.getElementById('loginErr').textContent = res.msg || 'Username atau sandi salah!';
@@ -236,6 +250,7 @@
 
     async function daftar() {
       const namaLengkap = document.getElementById('rNamaLengkap').value.trim();
+      const alamat = document.getElementById('rAlamat').value.trim();
       const user = document.getElementById('rUser').value.trim();
       const pass = document.getElementById('rPass').value;
       const pass2 = document.getElementById('rPass2').value;
@@ -244,6 +259,7 @@
       document.getElementById('pesanError').classList.add('hidden');
 
       if (!namaLengkap) return tampilkanError('Nama lengkap wajib diisi');
+      if (!alamat) return tampilkanError('Alamat wajib diisi');
       if (!user || !pass) return tampilkanError('Username & sandi wajib diisi');
       if (user.length < 3) return tampilkanError('Username minimal 3 karakter');
       if (pass.length < 6) return tampilkanError('Sandi minimal 6 karakter');
@@ -257,7 +273,7 @@
       try {
         const res = await fetch(GAS_URL, {
           method: 'POST',
-          body: JSON.stringify({ aksi: 'registerUser', user, pass: h, namaLengkap, jamaah, munasiq })
+          body: JSON.stringify({ aksi: 'registerUser', user, pass: h, namaLengkap, jamaah, munasiq, alamat })
         }).then(r => r.json());
         sembunyikanLoading();
         if (res.ok) {
