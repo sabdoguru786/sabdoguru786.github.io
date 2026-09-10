@@ -46,6 +46,14 @@
         pointer-events: none;
         position: relative;
       }
+      /* Class ini ditambah lewat JS (bukan statis di HTML), jadi harus ditulis manual —
+         Tailwind CDN cuma compile class yang ada di markup saat halaman dimuat */
+      #ikonQR.rotate-180, #ikonEdit.rotate-180 {
+        transform: rotate(180deg);
+      }
+      .tombol-status {
+        transition: background-color 0.2s ease, color 0.2s ease;
+      }
   </style>
 </head>
 <body class="bg-prim-50">
@@ -68,42 +76,68 @@
       <span id="tandaiTeks"></span>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-lg p-6 space-y-4">
-      <div>
-        <label class="text-sm text-gray-500">Nama</label>
-        <input type="text" id="nama" class="w-full p-3 border rounded-lg mt-1" />
+    <div class="bg-white rounded-2xl shadow-lg p-6 text-center">
+      <!-- Foto/Avatar -->
+      <div id="avatarLingkaran" class="w-24 h-24 rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold mb-4">
+        <span id="avatarHuruf">?</span>
       </div>
-      <div>
-        <label class="text-sm text-gray-500">Alamat</label>
-        <input type="text" id="alamat" class="w-full p-3 border rounded-lg mt-1" />
-      </div>
-      <div>
-        <label class="text-sm text-gray-500">Jenis</label>
-        <select id="jenis" class="w-full p-3 border rounded-lg mt-1">
-          <option value="Umum">Umum</option>
-          <option value="Salikin">Salikin</option>
-          <option value="Salikah">Salikah</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-sm text-gray-500">Status</label>
-        <select id="status" class="w-full p-3 border rounded-lg mt-1">
-          <option value="belum">Belum Diambil</option>
-          <option value="sudah">Sudah Diambil</option>
-          <option value="none">Tidak Ambil</option>
-        </select>
+      <h2 id="tampilNama" class="text-xl font-bold text-gray-800">-</h2>
+      <p id="tampilAlamat" class="text-gray-500 text-sm mt-1">-</p>
+      <span id="tampilJenis" class="inline-block mt-3 px-3 py-1 rounded-full text-xs font-medium">Umum</span>
+
+      <!-- Status sebagai tombol pilihan -->
+      <div class="mt-6">
+        <p class="text-xs text-gray-400 mb-2">Status Pengambilan</p>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" data-nilai="belum" onclick="pilihStatus('belum')" class="tombol-status py-2 rounded-lg text-sm font-semibold border border-gray-300 bg-white text-gray-600">Belum</button>
+          <button type="button" data-nilai="sudah" onclick="pilihStatus('sudah')" class="tombol-status py-2 rounded-lg text-sm font-semibold border border-gray-300 bg-white text-gray-600">Sudah</button>
+          <button type="button" data-nilai="none" onclick="pilihStatus('none')" class="tombol-status py-2 rounded-lg text-sm font-semibold border border-gray-300 bg-white text-gray-600">Tidak</button>
+        </div>
       </div>
 
-      <!-- Tampilan QR Code -->
-      <div class="border-t pt-4 mt-4 text-center">
-        <h3 class="font-semibold text-gray-700 mb-2">Kode QR Data Ini</h3>
-        <div id="qrcode" class="flex justify-center"></div>
-        <p class="text-xs text-gray-500 mt-2">Pindai untuk membuka halaman detail ini</p>
+      <!-- Tombol Edit -->
+      <button id="btnEdit" type="button" onclick="toggleEdit()" class="mt-6 text-sm text-prim-700 font-medium hover:underline">
+        <i id="ikonEdit" class="fa-solid fa-chevron-down mr-1 transition-transform"></i>Edit Data
+      </button>
+
+      <!-- Form Edit — slidedown -->
+      <div id="formEditWrap" class="overflow-hidden transition-all duration-300 text-left" style="max-height: 0;">
+        <div class="pt-4 mt-3 border-t space-y-3">
+          <div>
+            <label class="text-sm text-gray-500">Nama</label>
+            <input type="text" id="nama" class="w-full p-3 border rounded-lg mt-1" />
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">Alamat</label>
+            <input type="text" id="alamat" class="w-full p-3 border rounded-lg mt-1" />
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">Jama'ah</label>
+            <select id="jenis" class="w-full p-3 border rounded-lg mt-1">
+              <option value="Umum">Umum</option>
+              <option value="Salikin">Salikin</option>
+              <option value="Salikah">Salikah</option>
+            </select>
+          </div>
+          <button id="btnSimpan" onclick="simpan()" class="w-full py-2 gradient-bg text-white rounded-lg">Simpan</button>
+        </div>
       </div>
 
-      <div class="flex gap-3 pt-4">
+      <!-- Kode QR — disembunyikan, buka lewat link (slidedown) -->
+      <div class="border-t pt-4 mt-6 text-center">
+        <button type="button" onclick="toggleQR()" class="text-sm text-prim-700 font-medium hover:underline">
+          <i id="ikonQR" class="fa-solid fa-chevron-down mr-1 transition-transform"></i>Tampilkan Kode QR
+        </button>
+        <div id="qrWrap" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
+          <div class="pt-3">
+            <div id="qrcode" class="flex justify-center"></div>
+            <p class="text-xs text-gray-500 mt-2">Pindai untuk membuka halaman detail ini</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-5">
         <button onclick="goBack()" class="flex-1 py-2 border rounded-lg">Kembali</button>
-        <button id="btnSimpan" onclick="simpan()" class="flex-1 py-2 gradient-bg text-white rounded-lg">Simpan Perubahan</button>
       </div>
       <button id="btnTandai" onclick="tandai()" class="hidden w-full py-2 bg-warn/10 text-warn font-medium rounded-lg mt-2">
         <i class="fa-solid fa-flag mr-2"></i>Tandai Kesalahan Input
@@ -117,7 +151,42 @@
     </div>
   </main>
 
+  <!-- Modal Konfirmasi (pengganti confirm() bawaan browser) -->
+  <div id="konfirmModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl text-center">
+      <div class="w-14 h-14 bg-warn/10 text-warn rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <p id="konfirmPesan" class="text-gray-700 mb-6"></p>
+      <div class="flex gap-3">
+        <button id="konfirmBatal" class="flex-1 py-2 border rounded-lg">Batal</button>
+        <button id="konfirmYa" class="flex-1 py-2 bg-red-500 text-white rounded-lg font-medium">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // === MODAL KONFIRMASI (pengganti confirm() bawaan browser) ===
+    function konfirmasi(pesan, labelYa) {
+      return new Promise((resolve) => {
+        document.getElementById('konfirmPesan').textContent = pesan;
+        document.getElementById('konfirmYa').textContent = labelYa || 'Ya, Lanjutkan';
+        document.getElementById('konfirmModal').classList.remove('hidden');
+        const tombolYa = document.getElementById('konfirmYa');
+        const tombolBatal = document.getElementById('konfirmBatal');
+        function bersihkan(hasil) {
+          document.getElementById('konfirmModal').classList.add('hidden');
+          tombolYa.removeEventListener('click', onYa);
+          tombolBatal.removeEventListener('click', onBatal);
+          resolve(hasil);
+        }
+        function onYa() { bersihkan(true); }
+        function onBatal() { bersihkan(false); }
+        tombolYa.addEventListener('click', onYa);
+        tombolBatal.addEventListener('click', onBatal);
+      });
+    }
+
     // === FUNGSI TAMPIL/SEMBUNYIKAN LOADING ===
     function tampilkanLoading() {
       document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -132,6 +201,14 @@
     const id = new URLSearchParams(location.search).get('id');
     const peran = localStorage.getItem('role') || 'user';
     let dataLama = null;
+
+    // Warna per jenis jama'ah — dipakai lewat inline style (bukan class Tailwind dinamis),
+    // karena Tailwind CDN cuma compile class yang tertulis statis di HTML saat halaman dimuat.
+    const WARNA_JENIS = {
+      Umum: { lembut: '#e0f2fe', teks: '#0369a1', solid: '#0ea5e9' },
+      Salikin: { lembut: '#fae8ff', teks: '#a21caf', solid: '#d946ef' },
+      Salikah: { lembut: '#fce7f3', teks: '#be185d', solid: '#ec4899' }
+    };
 
     async function panggilAPI(payload) {
       const body = Object.assign({
@@ -163,10 +240,12 @@
     // Terapkan batasan tampilan sesuai peran: user hanya lihat, subAdmin tak bisa hapus, admin akses penuh
     function terapkanPeran() {
       const hanyaLihat = peran === 'user';
-      ['nama', 'alamat', 'jenis', 'status'].forEach(fid => {
-        document.getElementById(fid).disabled = hanyaLihat;
+      document.getElementById('btnEdit').classList.toggle('hidden', hanyaLihat);
+      document.querySelectorAll('.tombol-status').forEach((btn) => {
+        btn.disabled = hanyaLihat;
+        btn.style.opacity = hanyaLihat ? '0.5' : '';
+        btn.style.cursor = hanyaLihat ? 'not-allowed' : '';
       });
-      document.getElementById('btnSimpan').classList.toggle('hidden', hanyaLihat);
       document.getElementById('btnHapus').classList.toggle('hidden', peran !== 'admin');
       document.getElementById('btnTandai').classList.toggle('hidden', !(peran === 'admin' || peran === 'subAdmin'));
     }
@@ -184,7 +263,7 @@
       const cache = bacaCacheLokal();
       const dariCache = cache.find(d => d.id === id);
       if (dariCache) {
-        isiForm(dariCache);
+        isiTampilan(dariCache);
       } else {
         tampilkanLoading();
       }
@@ -192,7 +271,7 @@
       try {
         const res = await panggilAPI({ aksi: 'detail', id });
         if (res.ok && res.data) {
-          isiForm(res.data);
+          isiTampilan(res.data);
           // Perbarui juga cache daftar data supaya konsisten dengan index.html
           const idx = cache.findIndex(d => d.id === id);
           if (idx > -1) cache[idx] = Object.assign({}, cache[idx], res.data);
@@ -209,12 +288,67 @@
       sembunyikanLoading();
     }
 
-    function isiForm(data) {
+    // Slidedown/slideup generik (dipakai untuk panel Edit & Kode QR)
+    function slidePanel(wrapId, ikonId, buka, teksBuka, teksTutup) {
+      const wrap = document.getElementById(wrapId);
+      const ikon = document.getElementById(ikonId);
+      const tombol = ikon.parentElement;
+      if (buka) {
+        wrap.style.maxHeight = wrap.scrollHeight + 'px';
+        ikon.classList.add('rotate-180');
+        tombol.lastChild.textContent = teksTutup;
+      } else {
+        wrap.style.maxHeight = '0';
+        ikon.classList.remove('rotate-180');
+        tombol.lastChild.textContent = teksBuka;
+      }
+    }
+
+    let qrTerbuka = false;
+    function toggleQR() {
+      qrTerbuka = !qrTerbuka;
+      slidePanel('qrWrap', 'ikonQR', qrTerbuka, 'Tampilkan Kode QR', 'Sembunyikan Kode QR');
+    }
+
+    let editTerbuka = false;
+    function toggleEdit() {
+      editTerbuka = !editTerbuka;
+      slidePanel('formEditWrap', 'ikonEdit', editTerbuka, 'Edit Data', 'Tutup Edit');
+    }
+
+    function terapkanTampilanJenis(jenis) {
+      const w = WARNA_JENIS[jenis] || WARNA_JENIS.Umum;
+      const badge = document.getElementById('tampilJenis');
+      badge.textContent = jenis || 'Umum';
+      badge.style.background = w.lembut;
+      badge.style.color = w.teks;
+      document.getElementById('avatarLingkaran').style.background = w.solid;
+    }
+
+    function terapkanTampilanStatus(status) {
+      document.querySelectorAll('.tombol-status').forEach((btn) => {
+        const aktif = btn.dataset.nilai === status;
+        btn.classList.toggle('gradient-bg', aktif);
+        btn.classList.toggle('text-white', aktif);
+        btn.classList.toggle('bg-white', !aktif);
+        btn.classList.toggle('text-gray-600', !aktif);
+      });
+    }
+
+    function isiTampilan(data) {
       dataLama = data;
+      const nama = data.nama || '';
+      document.getElementById('tampilNama').textContent = nama || '-';
+      document.getElementById('tampilAlamat').textContent = data.alamat || '-';
+      document.getElementById('avatarHuruf').textContent = (nama.trim().charAt(0) || '?').toUpperCase();
+      terapkanTampilanJenis(data.jenis || 'Umum');
+      terapkanTampilanStatus(data.status || 'belum');
+
+      // Isi form edit (tersembunyi sampai tombol Edit diklik)
       document.getElementById('nama').value = data.nama || '';
       document.getElementById('alamat').value = data.alamat || '';
       document.getElementById('jenis').value = data.jenis || 'Umum';
-      document.getElementById('status').value = data.status || 'belum';
+
       tampilkanTanda(data.ditandai || '');
       document.getElementById('qrcode').innerHTML = '';
       new QRCode(document.getElementById('qrcode'), {
@@ -224,30 +358,48 @@
       });
     }
 
-    // Simpan lokal dulu (instan) → kirim ke Google Sheets di belakang layar
+    // Ubah status langsung dengan konfirmasi (tombol Sudah/Belum/Tidak)
+    async function pilihStatus(nilai) {
+      if (peran === 'user') return;
+      if (dataLama && dataLama.status === nilai) return;
+      const label = { belum: 'Belum', sudah: 'Sudah', none: 'Tidak' };
+      const setuju = await konfirmasi(`Ubah status jadi "${label[nilai]}"?`, 'Ya, Ubah');
+      if (!setuju) return;
+
+      terapkanTampilanStatus(nilai);
+      if (dataLama) dataLama.status = nilai;
+      const cache = bacaCacheLokal();
+      const idx = cache.findIndex(d => d.id === id);
+      if (idx > -1) { cache[idx].status = nilai; simpanCacheLokal(cache); }
+      panggilAPI({ aksi: 'status', id, status: nilai }).catch(() => {});
+    }
+
+    // Simpan Nama/Alamat/Jama'ah lokal dulu (instan) → kirim ke Google Sheets di belakang layar
     function simpan() {
-      const data = {
-        id,
-        nama: document.getElementById('nama').value.trim(),
-        alamat: document.getElementById('alamat').value.trim(),
-        jenis: document.getElementById('jenis').value,
-        status: document.getElementById('status').value
-      };
+      const nama = document.getElementById('nama').value.trim();
+      const alamat = document.getElementById('alamat').value.trim();
+      const jenis = document.getElementById('jenis').value;
+      const status = (dataLama && dataLama.status) || 'belum';
+      const data = { id, nama, alamat, jenis, status };
+
       const cache = bacaCacheLokal();
       const idx = cache.findIndex(d => d.id === id);
       const gabung = Object.assign({}, idx > -1 ? cache[idx] : {}, data);
       if (idx > -1) cache[idx] = gabung; else cache.push(gabung);
       simpanCacheLokal(cache);
 
+      isiTampilan(gabung);
+      if (editTerbuka) toggleEdit();
+
       panggilAPI(Object.assign({ aksi: 'simpan' }, data)).then(res => {
         if (!res.ok) alert('Gagal sinkron ke Google Sheets: ' + (res.msg || ''));
       }).catch(() => {});
-      location.href = 'index.html';
     }
 
     // Hanya admin — hapus lokal dulu (instan) → kirim ke Google Sheets di belakang layar
-    function hapus() {
-      if (!confirm('Yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan!')) return;
+    async function hapus() {
+      const setuju = await konfirmasi('Yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan!', 'Ya, Hapus');
+      if (!setuju) return;
       const cache = bacaCacheLokal().filter(d => d.id !== id);
       simpanCacheLokal(cache);
       panggilAPI({ aksi: 'hapus', id }).catch(() => {});
