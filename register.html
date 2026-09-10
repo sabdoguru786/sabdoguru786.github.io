@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Daftar Akun — PAS</title>
+  <title>Masuk / Daftar — PAS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
   <script>
@@ -21,6 +21,14 @@
     .gradient-bg { background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%); }
     .loading-spin { animation: spin 0.8s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* Animasi perpindahan panel Login <-> Daftar */
+    @keyframes masukDariKanan { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes masukDariKiri { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
+    .panel-masuk-kanan { animation: masukDariKanan 0.4s ease; }
+    .panel-masuk-kiri { animation: masukDariKiri 0.4s ease; }
+
+    #wrapMunasiq { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
   </style>
 </head>
 <body class="bg-prim-50 font-sans min-h-screen flex items-center justify-center p-4">
@@ -32,50 +40,72 @@
     </div>
   </div>
 
-  <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md overflow-hidden">
     <div class="text-center mb-6">
       <div class="w-14 h-14 gradient-bg text-white rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
-        <i class="fa-solid fa-user-plus"></i>
+        <i id="ikonModeAuth" class="fa-solid fa-right-to-bracket"></i>
       </div>
-      <h1 class="text-2xl font-bold text-prim-800">Daftar Akun</h1>
-      <p class="text-sm text-gray-500 mt-1">Akun baru hanya bisa melihat data, dan perlu disetujui admin dulu sebelum bisa login.</p>
+      <h1 id="judulAuth" class="text-2xl font-bold text-prim-800">Masuk</h1>
+      <p id="subJudulAuth" class="text-sm text-gray-500 mt-1">Masuk ke akunmu untuk melanjutkan.</p>
     </div>
 
-    <div id="formArea" class="space-y-4">
-      <div>
-        <label class="text-sm text-gray-500">Nama Pengguna</label>
-        <input type="text" id="rUser" class="w-full p-3 border border-gray-300 rounded-lg mt-1 focus:ring-2 focus:ring-prim-400 outline-none" placeholder="mis. budi123" />
-      </div>
-      <div>
-        <label class="text-sm text-gray-500">Kata Sandi</label>
+    <!-- ===== PANEL LOGIN ===== -->
+    <div id="panelLogin">
+      <div class="space-y-4">
+        <input type="text" id="uUser" placeholder="Username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" />
         <div class="relative">
-          <input type="password" id="rPass" class="w-full p-3 pr-12 border border-gray-300 rounded-lg mt-1 focus:ring-2 focus:ring-prim-400 outline-none" />
+          <input type="password" id="uPass" placeholder="Kata Sandi" class="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" />
+          <button type="button" onclick="lihatSandi('uPass','ikonMataLogin')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+            <i id="ikonMataLogin" class="fa-solid fa-eye-slash text-lg"></i>
+          </button>
+        </div>
+      </div>
+      <button id="btnLogin" onclick="doLogin()" class="w-full mt-6 py-3 gradient-bg text-white rounded-lg font-medium hover:opacity-90 disabled:opacity-60">Masuk</button>
+      <p id="loginErr" class="text-red-500 text-sm mt-2 text-center hidden"></p>
+    </div>
+
+    <!-- ===== PANEL DAFTAR ===== -->
+    <div id="panelDaftar" class="hidden">
+      <div id="formArea" class="space-y-3">
+        <input type="text" id="rNamaLengkap" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" placeholder="Nama Lengkap" />
+        <input type="text" id="rUser" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" placeholder="Username" />
+        <div class="relative">
+          <input type="password" id="rPass" class="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" placeholder="Kata Sandi" />
           <button type="button" onclick="lihatSandi('rPass','ikon1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
             <i id="ikon1" class="fa-solid fa-eye-slash"></i>
           </button>
         </div>
-      </div>
-      <div>
-        <label class="text-sm text-gray-500">Ulangi Kata Sandi</label>
         <div class="relative">
-          <input type="password" id="rPass2" class="w-full p-3 pr-12 border border-gray-300 rounded-lg mt-1 focus:ring-2 focus:ring-prim-400 outline-none" />
+          <input type="password" id="rPass2" class="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" placeholder="Ulangi Kata Sandi" />
           <button type="button" onclick="lihatSandi('rPass2','ikon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
             <i id="ikon2" class="fa-solid fa-eye-slash"></i>
           </button>
         </div>
+        <div>
+          <label class="text-sm text-gray-500">Jama'ah</label>
+          <select id="rJamaah" onchange="terapkanMunasiq()" class="w-full p-3 border border-gray-300 rounded-lg mt-1 focus:ring-2 focus:ring-prim-400 outline-none">
+            <option value="Umum">Umum</option>
+            <option value="Salikin">Salikin</option>
+            <option value="Salikah">Salikah</option>
+          </select>
+        </div>
+        <div id="wrapMunasiq">
+          <input type="text" id="rMunasiq" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" placeholder="Nama Munasiq" />
+        </div>
+        <p id="pesanError" class="text-red-500 text-sm hidden"></p>
+        <button onclick="daftar()" class="w-full py-3 gradient-bg text-white rounded-lg font-medium hover:opacity-90">Daftar</button>
       </div>
-      <p id="pesanError" class="text-red-500 text-sm hidden"></p>
-      <button onclick="daftar()" class="w-full py-3 gradient-bg text-white rounded-lg font-medium hover:opacity-90">Daftar</button>
-    </div>
 
-    <div id="suksesArea" class="hidden text-center">
-      <i class="fa-solid fa-circle-check text-5xl text-prim-600 mb-3"></i>
-      <p class="text-gray-700 font-medium">Registrasi berhasil!</p>
-      <p class="text-sm text-gray-500 mt-1">Akun kamu menunggu persetujuan admin. Setelah disetujui, kamu bisa login.</p>
+      <div id="suksesArea" class="hidden text-center">
+        <i class="fa-solid fa-circle-check text-5xl text-prim-600 mb-3"></i>
+        <p class="text-gray-700 font-medium">Registrasi berhasil!</p>
+        <p class="text-sm text-gray-500 mt-1">Akun kamu menunggu persetujuan admin. Setelah disetujui, kamu bisa login.</p>
+      </div>
     </div>
 
     <p class="text-center text-sm text-gray-500 mt-6">
-      Sudah punya akun? <a href="index.html" class="text-prim-700 font-medium hover:underline">Login</a>
+      <span id="teksToggleAuth">Belum punya akun?</span>
+      <button type="button" onclick="toggleModeAuth()" class="text-prim-700 font-medium hover:underline"><span id="labelToggleAuth">Daftar</span></button>
     </p>
     <p class="text-center text-sm mt-1">
       <a href="home.html" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-arrow-left mr-1"></i>Kembali ke Beranda</a>
@@ -84,6 +114,7 @@
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzW5OJoQVZ-mJmQ0dC7Wvsg49BY6itH8niXebutRFFPqwU9PDAb9RJyeWeMIcWBg7uF/exec";
+    let modeSaatIni = 'login';
 
     async function hashPass(pass) {
       const encoder = new TextEncoder();
@@ -91,6 +122,10 @@
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
+
+    function tampilkanLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
+    function sembunyikanLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
     function lihatSandi(inputId, ikonId) {
       const input = document.getElementById(inputId);
       const ikon = document.getElementById(ikonId);
@@ -103,6 +138,96 @@
       }
     }
 
+    // Munasiq cuma relevan untuk Salikin/Salikah — muncul dengan slidedown
+    function terapkanMunasiq() {
+      const jamaah = document.getElementById('rJamaah').value;
+      const wrap = document.getElementById('wrapMunasiq');
+      const perlu = jamaah === 'Salikin' || jamaah === 'Salikah';
+      wrap.style.maxHeight = perlu ? wrap.scrollHeight + 'px' : '0';
+      if (!perlu) document.getElementById('rMunasiq').value = '';
+    }
+
+    // === PERPINDAHAN PANEL LOGIN <-> DAFTAR (dengan animasi) ===
+    function terapkanModeAuth(animasikan) {
+      const panelLogin = document.getElementById('panelLogin');
+      const panelDaftar = document.getElementById('panelDaftar');
+      const isLogin = modeSaatIni === 'login';
+
+      panelLogin.classList.toggle('hidden', !isLogin);
+      panelDaftar.classList.toggle('hidden', isLogin);
+
+      document.getElementById('judulAuth').textContent = isLogin ? 'Masuk' : 'Daftar Akun';
+      document.getElementById('subJudulAuth').textContent = isLogin
+        ? 'Masuk ke akunmu untuk melanjutkan.'
+        : 'Akun baru hanya bisa melihat data, dan perlu disetujui admin dulu sebelum bisa login.';
+      document.getElementById('ikonModeAuth').className = isLogin ? 'fa-solid fa-right-to-bracket' : 'fa-solid fa-user-plus';
+      document.getElementById('teksToggleAuth').textContent = isLogin ? 'Belum punya akun?' : 'Sudah punya akun?';
+      document.getElementById('labelToggleAuth').textContent = isLogin ? 'Daftar' : 'Masuk';
+
+      if (animasikan !== false) {
+        const panelAktif = isLogin ? panelLogin : panelDaftar;
+        panelAktif.classList.remove('panel-masuk-kanan', 'panel-masuk-kiri');
+        void panelAktif.offsetWidth; // paksa reflow supaya animasi bisa diulang
+        panelAktif.classList.add(isLogin ? 'panel-masuk-kiri' : 'panel-masuk-kanan');
+      }
+    }
+
+    function toggleModeAuth() {
+      modeSaatIni = modeSaatIni === 'login' ? 'daftar' : 'login';
+      terapkanModeAuth(true);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('user') && localStorage.getItem('sandiHash')) {
+        location.href = 'index.html';
+        return;
+      }
+      const params = new URLSearchParams(location.search);
+      modeSaatIni = params.get('mode') === 'daftar' ? 'daftar' : 'login';
+      terapkanModeAuth(false);
+    });
+
+    // === LOGIN ===
+    async function doLogin() {
+      const tombol = document.getElementById('btnLogin');
+      if (tombol.disabled) return;
+      document.getElementById('loginErr').classList.add('hidden');
+      tombol.disabled = true;
+      tombol.textContent = 'Sedang masuk...';
+      tampilkanLoading();
+
+      const u = document.getElementById('uUser').value.trim();
+      const p = document.getElementById('uPass').value.trim();
+      const h = await hashPass(p);
+      let res;
+      try {
+        res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ aksi: 'cekUser', user: u, pass: h })
+        }).then(r => r.json());
+      } catch (e) {
+        document.getElementById('loginErr').textContent = 'Tidak bisa terhubung ke server. Cek URL Apps Script/koneksi internet.';
+        document.getElementById('loginErr').classList.remove('hidden');
+        tombol.disabled = false;
+        tombol.textContent = 'Masuk';
+        sembunyikanLoading();
+        return;
+      }
+      if (res.ok) {
+        localStorage.setItem('user', u);
+        localStorage.setItem('sandiHash', h);
+        localStorage.setItem('role', res.role || 'admin');
+        location.href = 'index.html';
+        return;
+      }
+      document.getElementById('loginErr').textContent = res.msg || 'Username atau sandi salah!';
+      document.getElementById('loginErr').classList.remove('hidden');
+      tombol.disabled = false;
+      tombol.textContent = 'Masuk';
+      sembunyikanLoading();
+    }
+
+    // === REGISTRASI ===
     function tampilkanError(pesan) {
       const el = document.getElementById('pesanError');
       el.textContent = pesan;
@@ -110,24 +235,31 @@
     }
 
     async function daftar() {
+      const namaLengkap = document.getElementById('rNamaLengkap').value.trim();
       const user = document.getElementById('rUser').value.trim();
       const pass = document.getElementById('rPass').value;
       const pass2 = document.getElementById('rPass2').value;
+      const jamaah = document.getElementById('rJamaah').value;
+      const munasiq = document.getElementById('rMunasiq').value.trim();
       document.getElementById('pesanError').classList.add('hidden');
 
-      if (!user || !pass) return tampilkanError('Nama pengguna & sandi wajib diisi');
-      if (user.length < 3) return tampilkanError('Nama pengguna minimal 3 karakter');
+      if (!namaLengkap) return tampilkanError('Nama lengkap wajib diisi');
+      if (!user || !pass) return tampilkanError('Username & sandi wajib diisi');
+      if (user.length < 3) return tampilkanError('Username minimal 3 karakter');
       if (pass.length < 6) return tampilkanError('Sandi minimal 6 karakter');
       if (pass !== pass2) return tampilkanError('Ulangi sandi tidak sama');
+      if ((jamaah === 'Salikin' || jamaah === 'Salikah') && !munasiq) {
+        return tampilkanError('Munasiq wajib diisi untuk Salikin/Salikah');
+      }
 
-      document.getElementById('loadingOverlay').classList.remove('hidden');
+      tampilkanLoading();
       const h = await hashPass(pass);
       try {
         const res = await fetch(GAS_URL, {
           method: 'POST',
-          body: JSON.stringify({ aksi: 'registerUser', user, pass: h })
+          body: JSON.stringify({ aksi: 'registerUser', user, pass: h, namaLengkap, jamaah, munasiq })
         }).then(r => r.json());
-        document.getElementById('loadingOverlay').classList.add('hidden');
+        sembunyikanLoading();
         if (res.ok) {
           document.getElementById('formArea').classList.add('hidden');
           document.getElementById('suksesArea').classList.remove('hidden');
@@ -135,7 +267,7 @@
           tampilkanError(res.msg || 'Registrasi gagal');
         }
       } catch (e) {
-        document.getElementById('loadingOverlay').classList.add('hidden');
+        sembunyikanLoading();
         tampilkanError('Tidak dapat terhubung ke server, coba lagi.');
       }
     }
