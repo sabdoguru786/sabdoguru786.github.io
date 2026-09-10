@@ -1,12 +1,15 @@
-const CACHE_NAME = 'PAS-v6';
+const CACHE_NAME = 'PAS-v7';
 const ASSET_CACHE = [
   './',
   './index.html',
   './detail.html',
+  './download.html',
   './home.html',
   './register.html',
   './setting.html',
   './hikmah.html',
+  './icon.svg',
+  './app.webmanifest.json',
   // Catatan: cdn.tailwindcss.com sengaja TIDAK dimasukkan — CDN itu tidak mengirim header CORS
   // sehingga selalu gagal diambil oleh Service Worker (beda dari cdnjs/jsdelivr di bawah ini).
   // Dia tetap jalan normal lewat <script> tag biasa, cuma tidak bisa di-precache untuk offline.
