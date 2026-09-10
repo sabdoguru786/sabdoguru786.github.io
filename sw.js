@@ -1,4 +1,4 @@
-const CACHE_NAME = 'PAS-v5';
+const CACHE_NAME = 'PAS-v6';
 const ASSET_CACHE = [
   './',
   './index.html',
@@ -43,6 +43,16 @@ self.addEventListener('activate', e => {
 // supaya update kode langsung kepakai, baru fallback ke cache kalau memang lagi offline.
 // Aset statis (CSS/JS library) tetap cache-first supaya cepat & bisa dipakai offline.
 self.addEventListener('fetch', e => {
+  // Jangan pernah ikut campur request ke backend Apps Script (Google Sheets API kita).
+  // Apps Script Web App selalu redirect 302 lintas-origin (script.google.com ->
+  // script.googleusercontent.com) untuk mengembalikan hasilnya — kalau request ini ikut
+  // dicegat & di-passthrough lewat Service Worker, redirect-nya bisa gagal dengan error
+  // CORS palsu ("Failed to fetch") padahal server aslinya baik-baik saja. Biarkan browser
+  // yang menangani langsung, tanpa lewat Service Worker sama sekali.
+  if (e.request.url.includes('script.google.com') || e.request.url.includes('script.googleusercontent.com')) {
+    return;
+  }
+
   const isHalamanHTML = e.request.mode === 'navigate' ||
     (e.request.method === 'GET' && e.request.headers.get('accept')?.includes('text/html'));
 
