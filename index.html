@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PAS</title>
   <!-- PWA Manifest -->
-  <link rel="manifest" href="app.webmanifest" />
+  <link rel="manifest" href="app.webmanifest.json" />
   <meta name="theme-color" content="#16a34a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -104,9 +104,9 @@
   <nav class="gradient-bg fixed top-0 left-0 right-0 z-40 shadow-lg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
-        <h1 class="text-white text-xl font-bold tracking-wide">PAS</h1>
+        <a href="home.html" class="text-white text-xl font-bold tracking-wide">PAS</a>
         <div class="hidden md:flex items-center gap-4">
-          <button onclick="openForm()" class="bg-white text-prim-700 px-4 py-2 rounded-lg font-medium hover:bg-prim-100 transition shadow">
+          <button id="btnTambahDesktop" onclick="openForm()" class="bg-white text-prim-700 px-4 py-2 rounded-lg font-medium hover:bg-prim-100 transition shadow">
             <i class="fa-solid fa-plus mr-2"></i>Tambah Data
           </button>
           <button onclick="openUserMenu()" class="relative text-white text-xl p-2 rounded-full hover:bg-white/20 transition">
@@ -122,11 +122,14 @@
     <div id="userMenu" class="hidden absolute right-4 mt-2 w-56 bg-white rounded-xl shadow-xl overflow-hidden z-50">
       <div class="p-4 gradient-bg text-white">
         <p class="font-semibold" id="adminName">Admin</p>
-        <p class="text-sm opacity-80">Pengguna Aktif</p>
+        <p class="text-sm opacity-80" id="adminRole">Pengguna Aktif</p>
       </div>
       <div class="p-2">
-        <button onclick="openUserManage()" class="w-full text-left px-4 py-2 hover:bg-prim-50 rounded flex items-center gap-2">
-          <i class="fa-solid fa-users text-prim-600"></i> Setting
+        <button onclick="openProfile()" class="w-full text-left px-4 py-2 hover:bg-prim-50 rounded flex items-center gap-2">
+          <i class="fa-solid fa-id-card text-prim-600"></i> Profile
+        </button>
+        <button id="menuSetting" onclick="window.location.href='setting.html'" class="hidden w-full text-left px-4 py-2 hover:bg-prim-50 rounded flex items-center gap-2">
+          <i class="fa-solid fa-gear text-prim-600"></i> Setting
         </button>
         <button onclick="logout()" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded flex items-center gap-2">
           <i class="fa-solid fa-right-from-bracket"></i> Keluar
@@ -146,31 +149,31 @@
   </div>
     <!-- Dashboard Card -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8 mt-4">
-      <div data-aos="fade-up" onclick="loadData('all')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
+      <div data-aos="fade-up" onclick="pilihFilter('all')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
         <p class="text-gray-500 text-sm">Total Data</p>
         <h3 class="text-2xl font-bold text-prim-800" id="totalAll">0</h3>
       </div>
-      <div data-aos="fade-up" data-aos-delay="50" onclick="loadData('belum')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
+      <div data-aos="fade-up" data-aos-delay="50" onclick="pilihFilter('belum')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
         <p class="text-gray-500 text-sm">Belum Diambil</p>
         <h3 class="text-2xl font-bold text-warn" id="totalBelum">0</h3>
       </div>
-      <div data-aos="fade-up" data-aos-delay="100" onclick="loadData('sudah')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
+      <div data-aos="fade-up" data-aos-delay="100" onclick="pilihFilter('sudah')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
         <p class="text-gray-500 text-sm">Sudah Diambil</p>
         <h3 class="text-2xl font-bold text-sec" id="totalSudah">0</h3>
       </div>
-      <div data-aos="fade-up" data-aos-delay="150" onclick="loadData('none')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
+      <div data-aos="fade-up" data-aos-delay="150" onclick="pilihFilter('none')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
         <p class="text-gray-500 text-sm">Tidak Ambil</p>
         <h3 class="text-2xl font-bold text-gray-600" id="totalNone">0</h3>
       </div>
-      <div data-aos="fade-up" data-aos-delay="180" onclick="loadData('umum')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
+      <div data-aos="fade-up" data-aos-delay="180" onclick="pilihFilter('umum')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
         <p class="text-gray-500 text-sm">Jenis Umum</p>
         <h3 class="text-2xl font-bold text-sky-600" id="totalUmum">0</h3>
       </div>
-      <div data-aos="fade-up" data-aos-delay="200" onclick="loadData('salikin')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
+      <div data-aos="fade-up" data-aos-delay="200" onclick="pilihFilter('salikin')" class="gradient-card rounded-xl p-4 card-shadow hover-lift cursor-pointer">
         <p class="text-gray-500 text-sm">Salikin/Salikah</p>
         <h3 class="text-2xl font-bold text-fuchsia-600" id="totalSalikin">0</h3>
       </div>
-      
+
     </div>
 
     <!-- Filter Data -->
@@ -203,17 +206,19 @@
     <div data-aos="fade-up" class="bg-white rounded-xl shadow-lg p-4 overflow-x-auto pb-5">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold text-prim-800">Daftar Data</h2>
+        <button onclick="loadData(currentFilter)" title="Sinkron ulang dari Google Sheets" class="text-sm text-prim-600 hover:text-prim-800 flex items-center gap-1">
+          <i class="fa-solid fa-rotate"></i> <span class="hidden sm:inline">Sinkron</span>
+        </button>
       </div>
       <!-- === KOTAK PENCARIAN BARU === -->
       <div class="mb-4">
-        <input type="text" id="cariData" placeholder="🔍 Cari nama..." 
-          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" 
+        <input type="text" id="cariData" placeholder="🔍 Cari nama..."
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none"
           oninput="cariSaatMengetik(this.value)" />
       </div>
       <table class="w-full text-sm">
         <thead>
           <tr class="bg-prim-100 text-prim-900">
-            <!-- <th class="p-3 text-left rounded-tl-lg">No</th> -->
             <th class="p-3 text-left">Nama</th>
             <th class="p-3 text-left">Jama'ah</th>
             <th class="p-3 text-center">Status</th>
@@ -246,12 +251,12 @@
         <i class="fa-solid fa-qrcode text-xl"></i>
         <span class="text-xs mt-1">Scan QR</span>
       </button>
-      <button onclick="openForm()" class="flex flex-col items-center text-white gradient-bg rounded-full w-14 h-14 -mt-6 shadow-lg justify-center">
+      <button id="btnTambahHp" onclick="openForm()" class="flex flex-col items-center text-white gradient-bg rounded-full w-14 h-14 -mt-6 shadow-lg justify-center">
         <i class="fa-solid fa-plus text-xl"></i>
       </button>
-      <button onclick="openUserManage()" class="flex flex-col items-center text-gray-600 p-2">
-        <i class="fa-solid fa-users text-xl"></i>
-        <span class="text-xs mt-1">Pengguna</span>
+      <button onclick="openProfile()" class="flex flex-col items-center text-gray-600 p-2">
+        <i class="fa-solid fa-user text-xl"></i>
+        <span class="text-xs mt-1">Profile</span>
       </button>
     </div>
   </nav>
@@ -283,7 +288,7 @@
   <!-- Modal Login -->
   <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
     <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl" data-aos="zoom-in">
-      <h3 class="text-2xl font-bold text-center text-prim-700 mb-6">Login Admin</h3>
+      <h3 class="text-2xl font-bold text-center text-prim-700 mb-6">Login</h3>
       <div class="space-y-4">
         <input type="text" id="uName" placeholder="Nama Pengguna" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" />
         <!-- === TAMBAH IKON MATA DI KOLOM SANDI === -->
@@ -296,37 +301,47 @@
       </div>
       <button onclick="doLogin()" class="w-full mt-6 py-3 gradient-bg text-white rounded-lg font-medium hover:opacity-90">Masuk</button>
       <p id="loginErr" class="text-red-500 text-sm mt-2 text-center hidden">Nama atau sandi salah!</p>
+      <p class="text-center text-sm text-gray-500 mt-4">
+        Belum punya akun? <a href="register.html" class="text-prim-700 font-medium hover:underline">Daftar</a>
+      </p>
+      <p class="text-center text-sm mt-1">
+        <a href="home.html" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-arrow-left mr-1"></i>Kembali ke Beranda</a>
+      </p>
     </div>
   </div>
 
-  <!-- Modal Kelola Pengguna -->
-  <div id="userModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
-      <h3 class="text-xl font-bold text-prim-700 mb-4">Tambah User</h3>
-      
-        <div class="space-y-3 border-b pb-4 mb-4">
-        <input type="text" id="newUser" placeholder="Nama User Baru" class="w-full p-3 border rounded-lg" />
-        <div class="relative">
-          <input type="password" id="newPass" placeholder="Kata Sandi" class="w-full p-3 pr-12 border rounded-lg" />
-          <button type="button" onclick="lihatSandiBaru()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-            <i id="ikonMataBaru" class="fa-solid fa-eye-slash text-lg"></i>
-          </button>
-        </div>
-        <button onclick="addUser()" class="w-full py-2 gradient-bg text-white rounded-lg">Tambah User</button>
+  <!-- Modal Profile -->
+  <div id="profileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl text-center" data-aos="zoom-in">
+      <div class="w-20 h-20 gradient-bg text-white rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+        <i class="fa-solid fa-user"></i>
       </div>
-      
-      <div id="userList" class="space-y-2"></div>
-      <button onclick="closeUserManage()" class="w-full mt-4 py-2 border rounded-lg">Tutup</button>
+      <h3 class="text-xl font-bold text-prim-800" id="profileNama">-</h3>
+      <p class="text-sm text-gray-500 mb-1" id="profileRole">-</p>
+      <p class="text-xs text-gray-400 mb-6" id="profileKeterangan"></p>
+      <div class="space-y-2">
+        <button id="btnProfileSetting" onclick="window.location.href='setting.html'" class="hidden w-full py-2 gradient-bg text-white rounded-lg font-medium">
+          <i class="fa-solid fa-gear mr-2"></i>Buka Setting
+        </button>
+        <button onclick="logout()" class="w-full py-2 bg-red-50 text-red-600 rounded-lg font-medium">
+          <i class="fa-solid fa-right-from-bracket mr-2"></i>Keluar
+        </button>
+        <button onclick="closeProfile()" class="w-full py-2 border rounded-lg">Tutup</button>
+      </div>
     </div>
   </div>
 
   <script>
     // === KONFIGURASI ===
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxOt9P9_998SWKA4gLGK-CsypCNNeA2iqM8Bjx0wHB9-Bv1Oudedg83uqewlMjTmvrC/exec"; // GANTI URL DEPLOYMENT-MU
+    // Catatan keamanan: URL ini tidak "rahasia" (selalu terlihat via view-source begitu situs live),
+    // jadi perlindungan sesungguhnya ada di server (Code.gs) yang memvalidasi user+sandi di setiap aksi.
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyI0vrdW_9_U-_a7LzLP55c-evTQ_UxceR_27-ve-4MclEPYjDNucQZXDVfQwskMqUD/exec"; // GANTI URL DEPLOYMENT-MU
     const SITE_URL = window.location.origin + window.location.pathname.replace(/index\.html$/, '');
+    const CACHE_KEY = 'pasDataCache';
     let loggedIn = false;
     let currentFilter = "all";
     let semuaData = [];
+    let peran = 'user'; // admin | subAdmin | user
 
     // Hash password
     async function hashPass(pass) {
@@ -335,22 +350,25 @@
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
-    // === LIHAT/SEMBUNYIKAN SANDI FORM TAMBAH PENGGUNA ===
-    let sandiBaruTerlihat = false;
-    function lihatSandiBaru() {
-      const input = document.getElementById('newPass');
-      const ikon = document.getElementById('ikonMataBaru');
-      sandiBaruTerlihat = !sandiBaruTerlihat;
-      if (sandiBaruTerlihat) {
-        input.type = 'text';
-        ikon.className = 'fa-solid fa-eye text-lg';
-      } else {
-        input.type = 'password';
-        ikon.className = 'fa-solid fa-eye-slash text-lg';
-      }
+
+    // Panggil backend dengan identitas pengguna otomatis disertakan (dipakai server untuk otorisasi)
+    async function panggilAPI(payload) {
+      const body = Object.assign({
+        user: localStorage.getItem('user') || '',
+        userPass: localStorage.getItem('sandiHash') || ''
+      }, payload);
+      return fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) }).then(r => r.json());
     }
-    // Login
-  // === FUNGSI LIHAT/SEMBUNYIKAN SANDI ===
+
+    // === CACHE LOKAL (biar tidak nunggu koneksi Google Sheets tiap buka) ===
+    function bacaCacheLokal() {
+      try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); } catch (e) { return []; }
+    }
+    function simpanCacheLokal(data) {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+    }
+
+    // === FUNGSI LIHAT/SEMBUNYIKAN SANDI ===
     let sandiTerlihat = false;
     function lihatSandi() {
       const input = document.getElementById('uPass');
@@ -364,39 +382,70 @@
         ikon.className = 'fa-solid fa-eye-slash text-lg';
       }
     }
+
     async function doLogin() {
       const u = document.getElementById('uName').value.trim();
       const p = document.getElementById('uPass').value.trim();
       const h = await hashPass(p);
-      const adminHash = await hashPass("admin123");
-      if (u === "admin" && h === adminHash) {
-        loggedIn = true;
-        localStorage.setItem('user', u);
-        document.getElementById('loginModal').classList.add('hidden');
-        loadData('all');
-        return;
-      }
       const res = await fetch(GAS_URL, {
         method: 'POST',
         body: JSON.stringify({ aksi: 'cekUser', user: u, pass: h })
       }).then(r => r.json());
       if (res.ok) {
         loggedIn = true;
+        peran = res.role || 'admin';
         localStorage.setItem('user', u);
+        localStorage.setItem('sandiHash', h);
+        localStorage.setItem('role', peran);
         document.getElementById('loginModal').classList.add('hidden');
+        terapkanPeran();
         loadData('all');
       } else {
+        document.getElementById('loginErr').textContent = res.msg || 'Nama atau sandi salah!';
         document.getElementById('loginErr').classList.remove('hidden');
       }
     }
 
+    // Logout selalu kembali ke Beranda (home.html)
     function logout() {
       localStorage.removeItem('user');
-      location.reload();
+      localStorage.removeItem('sandiHash');
+      localStorage.removeItem('role');
+      window.location.href = 'home.html';
     }
 
     function openUserMenu() {
       document.getElementById('userMenu').classList.toggle('hidden');
+    }
+
+    function openProfile() {
+      document.getElementById('userMenu').classList.add('hidden');
+      document.getElementById('profileNama').textContent = localStorage.getItem('user') || '-';
+      const labelPeran = { admin: 'Admin (akses penuh)', subAdmin: 'Sub Admin (kelola data)', user: 'Pengguna (lihat saja)' };
+      document.getElementById('profileRole').textContent = labelPeran[peran] || peran;
+      const ket = {
+        admin: 'Bisa mengelola semua data, pengguna, dan tampilan Beranda.',
+        subAdmin: 'Bisa tambah/ubah data, tidak bisa menghapus — hanya bisa menandai kesalahan.',
+        user: 'Hanya bisa melihat data, tidak bisa mengubah apapun.'
+      };
+      document.getElementById('profileKeterangan').textContent = ket[peran] || '';
+      document.getElementById('btnProfileSetting').classList.toggle('hidden', peran !== 'admin');
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+    function closeProfile() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    // Terapkan batasan tampilan sesuai peran (admin/subAdmin/user)
+    function terapkanPeran() {
+      document.getElementById('adminName').textContent = localStorage.getItem('user') || 'Pengguna';
+      const labelPeran = { admin: 'Admin', subAdmin: 'Sub Admin', user: 'Pengguna' };
+      document.getElementById('adminRole').textContent = labelPeran[peran] || peran;
+
+      const bisaTambah = peran === 'admin' || peran === 'subAdmin';
+      document.getElementById('btnTambahDesktop').classList.toggle('hidden', !bisaTambah);
+      document.getElementById('btnTambahHp').classList.toggle('hidden', !bisaTambah);
+      document.getElementById('menuSetting').classList.toggle('hidden', peran !== 'admin');
     }
 
     // === SCAN QR DENGAN KAMERA ===
@@ -459,38 +508,51 @@
       setTimeout(pindaiQR, 300);
     }
 
-    // Data CRUD
-        async function loadData(filter = 'all') {
+    // === Data: muat dari cache lokal dulu (instan), lalu sinkron ke Google Sheets di belakang layar ===
+    async function loadData(filter = 'all') {
       if (!loggedIn) return;
-      tampilkanLoading();
       currentFilter = filter;
-      const labels = {
-        all: 'Semua Data', belum: 'Belum Diambil', sudah: 'Sudah Diambil',
-        none: 'Tidak Ambil', salikin: 'Salikin & Salikah', umum: 'Jenis Umum'
-      };
-      document.getElementById('filterInfo').textContent = labels[filter];
 
-      try {
-        const res = await fetch(GAS_URL, {
-          method: 'POST',
-          body: JSON.stringify({ aksi: 'baca', filter })
-        }).then(r => r.json());
-        
-        semuaData = res.data || [];
+      const cache = bacaCacheLokal();
+      if (cache.length) {
+        semuaData = cache;
         isiFilterAlamat();
         terapkanFilter();
-        document.getElementById('totalAll').textContent = res.stats.all || 0;
-        document.getElementById('totalBelum').textContent = res.stats.belum || 0;
-        document.getElementById('totalSudah').textContent = res.stats.sudah || 0;
-        document.getElementById('totalNone').textContent = res.stats.none || 0;
-        document.getElementById('totalUmum').textContent = res.stats.umum || 0;
-        document.getElementById('totalSalikin').textContent = res.stats.salikin || 0;
-      } catch (err) {
-        alert('Gagal terhubung ke server! Cek URL GAS_URL.');
-        console.error(err);
+        hitungStatistik();
+      } else {
+        tampilkanLoading();
       }
-      
-      sembunyikanLoading(); // ✅ SELALU dipanggil, sukses ATAU gagal
+
+      try {
+        const res = await panggilAPI({ aksi: 'baca', filter: 'all' });
+        if (res.ok) {
+          semuaData = res.data || [];
+          simpanCacheLokal(semuaData);
+          isiFilterAlamat();
+          terapkanFilter();
+          hitungStatistik();
+        } else if (!cache.length) {
+          document.getElementById('dataTable').innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">${res.msg || 'Gagal memuat data'}</td></tr>`;
+        }
+      } catch (e) {
+        // Offline / Sheets lambat — tetap tampilkan data cache lokal yang sudah ada
+      }
+      sembunyikanLoading();
+    }
+
+    // Pindah tab dashboard TANPA fetch ulang ke Sheets — cukup filter data yang sudah ada di memori
+    function pilihFilter(filter) {
+      currentFilter = filter;
+      terapkanFilter();
+    }
+
+    function hitungStatistik() {
+      document.getElementById('totalAll').textContent = semuaData.length;
+      document.getElementById('totalBelum').textContent = semuaData.filter(d => d.status === 'belum').length;
+      document.getElementById('totalSudah').textContent = semuaData.filter(d => d.status === 'sudah').length;
+      document.getElementById('totalNone').textContent = semuaData.filter(d => d.status === 'none').length;
+      document.getElementById('totalUmum').textContent = semuaData.filter(d => d.jenis === 'Umum').length;
+      document.getElementById('totalSalikin').textContent = semuaData.filter(d => d.jenis === 'Salikin' || d.jenis === 'Salikah').length;
     }
 
     function isiFilterAlamat() {
@@ -507,39 +569,26 @@
       select.value = nilaiSekarang;
     }
 
-    function terapkanFilter() {
-      const jenis = document.getElementById('filterJenis').value;
-      const alamat = document.getElementById('filterAlamat').value;
-      let dataTampil = [...semuaData];
-
-      if (currentFilter === 'belum') dataTampil = dataTampil.filter(d => d.status === 'belum');
-      else if (currentFilter === 'sudah') dataTampil = dataTampil.filter(d => d.status === 'sudah');
-      else if (currentFilter === 'none') dataTampil = dataTampil.filter(d => d.status === 'none');
-      else if (currentFilter === 'salikin') dataTampil = dataTampil.filter(d => d.jenis === 'Salikin' || d.jenis === 'Salikah');
-      else if (currentFilter === 'umum') dataTampil = dataTampil.filter(d => d.jenis === 'Umum'); 
-
-      if (jenis) dataTampil = dataTampil.filter(d => d.jenis === jenis);
-      if (alamat) dataTampil = dataTampil.filter(d => d.alamat === alamat);
-
-      renderTable(dataTampil);
-    }
-
     function resetFilter() {
       document.getElementById('filterJenis').value = '';
       document.getElementById('filterAlamat').value = '';
-      document.getElementById('cariData').value = ''; // ← tambahkan baris ini
-      loadData('all');
+      document.getElementById('cariData').value = '';
+      pilihFilter('all');
     }
 
     function renderTable(arr) {
       const tb = document.getElementById('dataTable');
+      const bisaAksi = peran === 'admin' || peran === 'subAdmin';
       if (!arr.length) {
         tb.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Data kosong</td></tr>`;
         return;
       }
-    tb.innerHTML = arr.map((d, i) => `
+      tb.innerHTML = arr.map((d) => `
         <tr class="border-b hover:bg-prim-50">
-          <td class="p-3">${d.nama || '-'}</td>
+          <td class="p-3">
+            ${d.nama || '-'}
+            ${d.ditandai ? `<span title="${d.ditandai}" class="ml-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600"><i class="fa-solid fa-triangle-exclamation"></i> Ditandai</span>` : ''}
+          </td>
           <td class="p-3">
             <span class="px-2 py-1 rounded-full text-xs font-medium ${
               d.jenis === 'Salikin' ? 'bg-fuchsia-100 text-fuchsia-700' :
@@ -547,12 +596,17 @@
             }">${d.jenis || 'Umum'}</span>
           </td>
           <td class="p-3 text-center">
-            <button onclick="event.stopPropagation(); toggleStatus('${d.id}','${d.status}')" 
+            ${bisaAksi ? `
+            <button onclick="event.stopPropagation(); toggleStatus('${d.id}','${d.status}')"
               class="text-xl">
               ${d.status === 'sudah' ? '<i class="fa-solid fa-check text-green-600"></i>' :
                 d.status === 'belum' ? '<i class="fa-solid fa-question text-gray-500"></i>' :
                 '<i class="fa-solid fa-xmark text-red-500"></i>'}
-            </button>
+            </button>` : `
+              ${d.status === 'sudah' ? '<i class="fa-solid fa-check text-green-600 text-xl"></i>' :
+                d.status === 'belum' ? '<i class="fa-solid fa-question text-gray-500 text-xl"></i>' :
+                '<i class="fa-solid fa-xmark text-red-500 text-xl"></i>'}
+            `}
           </td>
           <td class="p-3 text-center">
             <button onclick="openDetail('${d.id}')" class="px-3 py-1 bg-prim-100 text-prim-700 rounded-lg text-sm font-medium hover:bg-prim-200">
@@ -575,74 +629,42 @@
       document.getElementById('formModal').classList.add('hidden');
     }
 
-    async function saveData() {
-      tampilkanLoading();
+    // Simpan lokal dulu (instan) → kirim ke Google Sheets di belakang layar
+    function saveData() {
+      const nama = document.getElementById('fNama').value.trim();
+      if (!nama) { alert('Nama wajib diisi'); return; }
       const id = document.getElementById('editId').value || ('d' + Date.now());
-      const data = {
-        aksi: 'simpan',
-        id,
-        nama: document.getElementById('fNama').value.trim(),
-        alamat: document.getElementById('fAlamat').value.trim(),
-        jenis: document.getElementById('fJenis').value,
-        status: 'belum'
-      };
-      await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(data) });
+      const alamat = document.getElementById('fAlamat').value.trim();
+      const jenis = document.getElementById('fJenis').value;
+
+      const idx = semuaData.findIndex(d => d.id === id);
+      const status = idx > -1 ? semuaData[idx].status : 'belum';
+      const ditandai = idx > -1 ? semuaData[idx].ditandai : '';
+      const rowBaru = { id, nama, alamat, jenis, status, tgl: new Date().toLocaleString('id-ID'), ditandai };
+      if (idx > -1) semuaData[idx] = rowBaru; else semuaData.push(rowBaru);
+      simpanCacheLokal(semuaData);
       closeForm();
-      loadData('all');
-      sembunyikanLoading();
+      isiFilterAlamat();
+      terapkanFilter();
+      hitungStatistik();
+
+      panggilAPI({ aksi: 'simpan', id, nama, alamat, jenis, status }).then(res => {
+        if (!res.ok) alert('Gagal sinkron ke Google Sheets: ' + (res.msg || ''));
+      }).catch(() => {});
     }
 
-    async function toggleStatus(id, st) {
-      tampilkanLoading();
+    function toggleStatus(id, st) {
       const next = st === 'belum' ? 'sudah' : (st === 'sudah' ? 'none' : 'belum');
-      await fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ aksi: 'status', id, status: next })
-      });
-      loadData(currentFilter);
-      sembunyikanLoading();
+      const idx = semuaData.findIndex(d => d.id === id);
+      if (idx > -1) semuaData[idx].status = next;
+      simpanCacheLokal(semuaData);
+      terapkanFilter();
+      hitungStatistik();
+      panggilAPI({ aksi: 'status', id, status: next }).catch(() => {});
     }
 
     function openDetail(id) {
       window.location.href = SITE_URL + 'detail.html?id=' + id;
-    }
-
-    // Pengguna
-    function openUserManage() {
-      document.getElementById('userModal').classList.remove('hidden');
-      loadUsers();
-    }
-    function closeUserManage() {
-      document.getElementById('userModal').classList.add('hidden');
-    }
-    async function loadUsers() {
-      const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ aksi: 'bacaUser' }) }).then(r => r.json());
-      document.getElementById('userList').innerHTML = (res.users || []).map(u => `
-        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span>${u.user}</span>
-          <button onclick="delUser('${u.user}')" class="text-red-500 text-sm">Hapus</button>
-        </div>
-      `).join('');
-    }
-    async function addUser() {
-      tampilkanLoading();
-      const u = document.getElementById('newUser').value.trim();
-      const p = document.getElementById('newPass').value.trim();
-      if (!u || !p) return alert('Lengkapi data!');
-      const h = await hashPass(p);
-      await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ aksi: 'tambahUser', user: u, pass: h }) });
-      document.getElementById('newUser').value = '';
-      document.getElementById('newPass').value = '';
-      loadUsers();
-      sembunyikanLoading();
-    }
-    async function delUser(u) {
-      tampilkanLoading();
-      if (confirm('Hapus pengguna ini?')) {
-        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ aksi: 'hapusUser', user: u }) });
-        loadUsers();
-        sembunyikanLoading();
-      }
     }
 
     // === PEMASANGAN PWA ===
@@ -676,14 +698,16 @@
     // Inisialisasi
     document.addEventListener('DOMContentLoaded', () => {
       AOS.init({ duration: 600, once: true });
-      if (localStorage.getItem('user')) {
+      if (localStorage.getItem('user') && localStorage.getItem('sandiHash')) {
         document.getElementById('loginModal').classList.add('hidden');
         loggedIn = true;
+        peran = localStorage.getItem('role') || 'admin';
+        terapkanPeran();
         loadData('all');
       }
     });
 
-        // === FUNGSI TAMPIL/SEMBUNYIKAN LOADING ===
+    // === FUNGSI TAMPIL/SEMBUNYIKAN LOADING ===
     function tampilkanLoading() {
       document.getElementById('loadingOverlay').classList.remove('hidden');
     }
@@ -691,40 +715,35 @@
       document.getElementById('loadingOverlay').classList.add('hidden');
     }
 
-        // === PENCARIAN SAAT MENGETIK ===
-    let kataKunciSebelum = "";
-    function cariSaatMengetik(kata) {
-      kata = kata.trim().toLowerCase();
-      kataKunciSebelum = kata;
+    // === PENCARIAN & FILTER (semua dihitung dari data yang sudah ada di memori/cache) ===
+    function cariSaatMengetik() {
       terapkanFilter();
     }
 
-        function terapkanFilter() {
+    function terapkanFilter() {
       const jenis = document.getElementById('filterJenis').value;
       const alamat = document.getElementById('filterAlamat').value;
       const kata = (document.getElementById('cariData')?.value || "").trim().toLowerCase();
       let dataTampil = [...semuaData];
 
-      // Filter berdasarkan tab di atas
       if (currentFilter === 'belum') dataTampil = dataTampil.filter(d => d.status === 'belum');
       else if (currentFilter === 'sudah') dataTampil = dataTampil.filter(d => d.status === 'sudah');
       else if (currentFilter === 'none') dataTampil = dataTampil.filter(d => d.status === 'none');
+      else if (currentFilter === 'umum') dataTampil = dataTampil.filter(d => d.jenis === 'Umum');
       else if (currentFilter === 'salikin') dataTampil = dataTampil.filter(d => d.jenis === 'Salikin' || d.jenis === 'Salikah');
 
-      // Filter Jenis dan Alamat
       if (jenis) dataTampil = dataTampil.filter(d => d.jenis === jenis);
       if (alamat) dataTampil = dataTampil.filter(d => d.alamat === alamat);
 
-      // === PENCARIAN NAMA ===
       if (kata) {
-        dataTampil = dataTampil.filter(d => 
+        dataTampil = dataTampil.filter(d =>
           (d.nama || "").toLowerCase().includes(kata)
         );
       }
 
       renderTable(dataTampil);
     }
-    
+
   </script>
 </body>
 </html>
