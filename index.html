@@ -210,8 +210,6 @@
           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" 
           oninput="cariSaatMengetik(this.value)" />
       </div>
-        <span class="text-sm text-gray-500" id="filterInfo">Semua Data</span>
-      </div>
       <table class="w-full text-sm">
         <thead>
           <tr class="bg-prim-100 text-prim-900">
@@ -533,7 +531,6 @@
       }
     tb.innerHTML = arr.map((d, i) => `
         <tr class="border-b hover:bg-prim-50">
-          // <td class="p-3">${i+1}</td>
           <td class="p-3">${d.nama || '-'}</td>
           <td class="p-3">
             <span class="px-2 py-1 rounded-full text-xs font-medium ${
@@ -651,7 +648,7 @@
     function tampilkanTombolPasang() {
       if (!pemasangPWA) return;
       const tombol = document.createElement('button');
-      tombol.className = 'fixed top-20 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-30 hover:bg-prim-50';
+      tombol.className = 'fixed top-17 right-4 bg-white shadow-lg rounded-lg px-4 py-2 text-prim-700 text-sm font-medium z-30 hover:bg-prim-50';
       tombol.innerHTML = '<i class="fa-solid fa-download mr-2"></i>Pasang Aplikasi';
       tombol.onclick = async () => {
         tombol.remove();
