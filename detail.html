@@ -62,7 +62,12 @@
       <span class="text-gray-700 font-medium">Sedang memproses...</span>
     </div>
   </div>
-    
+
+    <div id="tandaiBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-4 text-sm">
+      <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+      <span id="tandaiTeks"></span>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-lg p-6 space-y-4">
       <div>
         <label class="text-sm text-gray-500">Nama</label>
@@ -98,16 +103,22 @@
 
       <div class="flex gap-3 pt-4">
         <button onclick="goBack()" class="flex-1 py-2 border rounded-lg">Kembali</button>
-        <button onclick="simpan()" class="flex-1 py-2 gradient-bg text-white rounded-lg">Simpan Perubahan</button>
+        <button id="btnSimpan" onclick="simpan()" class="flex-1 py-2 gradient-bg text-white rounded-lg">Simpan Perubahan</button>
       </div>
-      <button onclick="hapus()" class="w-full py-2 bg-red-50 text-red-600 rounded-lg mt-2">
+      <button id="btnTandai" onclick="tandai()" class="hidden w-full py-2 bg-warn/10 text-warn font-medium rounded-lg mt-2">
+        <i class="fa-solid fa-flag mr-2"></i>Tandai Kesalahan Input
+      </button>
+      <button id="btnBersihkanTanda" onclick="bersihkanTanda()" class="hidden w-full py-2 bg-gray-100 text-gray-600 rounded-lg mt-2">
+        <i class="fa-solid fa-eraser mr-2"></i>Bersihkan Tanda
+      </button>
+      <button id="btnHapus" onclick="hapus()" class="hidden w-full py-2 bg-red-50 text-red-600 rounded-lg mt-2">
         <i class="fa-solid fa-trash mr-2"></i>Hapus Data Ini
       </button>
     </div>
   </main>
 
   <script>
-        // === FUNGSI TAMPIL/SEMBUNYIKAN LOADING ===
+    // === FUNGSI TAMPIL/SEMBUNYIKAN LOADING ===
     function tampilkanLoading() {
       document.getElementById('loadingOverlay').classList.remove('hidden');
     }
@@ -115,69 +126,150 @@
       document.getElementById('loadingOverlay').classList.add('hidden');
     }
     // === GANTI DENGAN URL DEPLOYMENT-MU ===
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxOt9P9_998SWKA4gLGK-CsypCNNeA2iqM8Bjx0wHB9-Bv1Oudedg83uqewlMjTmvrC/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyI0vrdW_9_U-_a7LzLP55c-evTQ_UxceR_27-ve-4MclEPYjDNucQZXDVfQwskMqUD/exec";
     const SITE_URL = window.location.href.split('?')[0];
+    const CACHE_KEY = 'pasDataCache';
     const id = new URLSearchParams(location.search).get('id');
+    const peran = localStorage.getItem('role') || 'user';
     let dataLama = null;
+
+    async function panggilAPI(payload) {
+      const body = Object.assign({
+        user: localStorage.getItem('user') || '',
+        userPass: localStorage.getItem('sandiHash') || ''
+      }, payload);
+      return fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) }).then(r => r.json());
+    }
+    function bacaCacheLokal() {
+      try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); } catch (e) { return []; }
+    }
+    function simpanCacheLokal(data) {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       AOS.init({ duration: 600 });
-      if (!id) return alert('ID tidak ditemukan'), location.href='index.html';
+      if (!localStorage.getItem('user')) { location.href = 'index.html'; return; }
+      if (!id) { alert('ID tidak ditemukan'); location.href = 'index.html'; return; }
+      terapkanPeran();
       muatData();
     });
 
-    async function muatData() {
-      tampilkanLoading();
-      const res = await fetch(GAS_URL, {
-        method:'POST',
-        body:JSON.stringify({ aksi:'detail', id })
-      }).then(r=>r.json());
-      if (!res.data) return alert('Data tidak ditemukan'), location.href='index.html';
-      dataLama = res.data;
-      document.getElementById('nama').value = res.data.nama||'';
-      document.getElementById('alamat').value = res.data.alamat||'';
-      document.getElementById('jenis').value = res.data.jenis||'Umum';
-      document.getElementById('status').value = res.data.status||'belum';
+    // Terapkan batasan tampilan sesuai peran: user hanya lihat, subAdmin tak bisa hapus, admin akses penuh
+    function terapkanPeran() {
+      const hanyaLihat = peran === 'user';
+      ['nama', 'alamat', 'jenis', 'status'].forEach(fid => {
+        document.getElementById(fid).disabled = hanyaLihat;
+      });
+      document.getElementById('btnSimpan').classList.toggle('hidden', hanyaLihat);
+      document.getElementById('btnHapus').classList.toggle('hidden', peran !== 'admin');
+      document.getElementById('btnTandai').classList.toggle('hidden', !(peran === 'admin' || peran === 'subAdmin'));
+    }
 
-      // Buat QR Code
+    function tampilkanTanda(catatan) {
+      const ada = !!catatan;
+      document.getElementById('tandaiBanner').classList.toggle('hidden', !ada);
+      document.getElementById('tandaiTeks').textContent = ada ? ('Ditandai bermasalah: ' + catatan) : '';
+      document.getElementById('btnBersihkanTanda').classList.toggle('hidden', !(ada && (peran === 'admin' || peran === 'subAdmin')));
+      document.getElementById('btnTandai').textContent = ada ? 'Ubah Tanda Kesalahan' : 'Tandai Kesalahan Input';
+    }
+
+    // Tampilkan cache lokal dulu (instan) kalau ada, lalu sinkron ke Google Sheets di belakang layar
+    async function muatData() {
+      const cache = bacaCacheLokal();
+      const dariCache = cache.find(d => d.id === id);
+      if (dariCache) {
+        isiForm(dariCache);
+      } else {
+        tampilkanLoading();
+      }
+
+      try {
+        const res = await panggilAPI({ aksi: 'detail', id });
+        if (res.ok && res.data) {
+          isiForm(res.data);
+          // Perbarui juga cache daftar data supaya konsisten dengan index.html
+          const idx = cache.findIndex(d => d.id === id);
+          if (idx > -1) cache[idx] = Object.assign({}, cache[idx], res.data);
+          else cache.push(res.data);
+          simpanCacheLokal(cache);
+        } else if (!dariCache) {
+          alert(res.msg || 'Data tidak ditemukan');
+          location.href = 'index.html';
+          return;
+        }
+      } catch (e) {
+        // Offline / Sheets lambat — tetap pakai data dari cache lokal
+      }
+      sembunyikanLoading();
+    }
+
+    function isiForm(data) {
+      dataLama = data;
+      document.getElementById('nama').value = data.nama || '';
+      document.getElementById('alamat').value = data.alamat || '';
+      document.getElementById('jenis').value = data.jenis || 'Umum';
+      document.getElementById('status').value = data.status || 'belum';
+      tampilkanTanda(data.ditandai || '');
+      document.getElementById('qrcode').innerHTML = '';
       new QRCode(document.getElementById('qrcode'), {
         text: SITE_URL + '?id=' + id,
         width: 200,
         height: 200
       });
-      sembunyikanLoading();
     }
 
-    async function simpan() {
-      tampilkanLoading();
-      await fetch(GAS_URL, {
-        method:'POST',
-        body:JSON.stringify({
-          aksi:'simpan',
-          id,
-          nama: document.getElementById('nama').value.trim(),
-          alamat: document.getElementById('alamat').value.trim(),
-          jenis: document.getElementById('jenis').value,
-          status: document.getElementById('status').value
-        })
-      });
-      alert('Data berhasil diperbarui!');
-      location.href='index.html';
-      sembunyikanLoading();
+    // Simpan lokal dulu (instan) → kirim ke Google Sheets di belakang layar
+    function simpan() {
+      const data = {
+        id,
+        nama: document.getElementById('nama').value.trim(),
+        alamat: document.getElementById('alamat').value.trim(),
+        jenis: document.getElementById('jenis').value,
+        status: document.getElementById('status').value
+      };
+      const cache = bacaCacheLokal();
+      const idx = cache.findIndex(d => d.id === id);
+      const gabung = Object.assign({}, idx > -1 ? cache[idx] : {}, data);
+      if (idx > -1) cache[idx] = gabung; else cache.push(gabung);
+      simpanCacheLokal(cache);
+
+      panggilAPI(Object.assign({ aksi: 'simpan' }, data)).then(res => {
+        if (!res.ok) alert('Gagal sinkron ke Google Sheets: ' + (res.msg || ''));
+      }).catch(() => {});
+      location.href = 'index.html';
     }
 
-    async function hapus() {
-      tampilkanLoading();
-      if(confirm('Yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan!')) {
-        await fetch(GAS_URL, { method:'POST', body:JSON.stringify({ aksi:'hapus', id }) });
-        alert('Data telah dihapus!');
-        location.href='index.html';
-      }
-      sembunyikanLoading();
+    // Hanya admin — hapus lokal dulu (instan) → kirim ke Google Sheets di belakang layar
+    function hapus() {
+      if (!confirm('Yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan!')) return;
+      const cache = bacaCacheLokal().filter(d => d.id !== id);
+      simpanCacheLokal(cache);
+      panggilAPI({ aksi: 'hapus', id }).catch(() => {});
+      location.href = 'index.html';
+    }
+
+    // subAdmin/admin — tandai kesalahan input tanpa menghapus data
+    function tandai() {
+      const catatan = prompt('Tuliskan catatan kesalahan pada data ini:', dataLama && dataLama.ditandai || '');
+      if (catatan === null) return;
+      const cache = bacaCacheLokal();
+      const idx = cache.findIndex(d => d.id === id);
+      if (idx > -1) { cache[idx].ditandai = catatan; simpanCacheLokal(cache); }
+      tampilkanTanda(catatan);
+      panggilAPI({ aksi: 'tandai', id, catatan }).catch(() => {});
+    }
+
+    function bersihkanTanda() {
+      const cache = bacaCacheLokal();
+      const idx = cache.findIndex(d => d.id === id);
+      if (idx > -1) { cache[idx].ditandai = ''; simpanCacheLokal(cache); }
+      tampilkanTanda('');
+      panggilAPI({ aksi: 'tandai', id, catatan: '' }).catch(() => {});
     }
 
     function goBack() {
-      location.href='index.html';
+      location.href = 'index.html';
     }
   </script>
 </body>
