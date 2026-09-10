@@ -1,4 +1,4 @@
-const CACHE_NAME = 'PAS-v2';
+const CACHE_NAME = 'PAS-v3';
 const ASSET_CACHE = [
   './',
   './index.html',
@@ -6,7 +6,9 @@ const ASSET_CACHE = [
   './home.html',
   './register.html',
   './setting.html',
-  'https://cdn.tailwindcss.com',
+  // Catatan: cdn.tailwindcss.com sengaja TIDAK dimasukkan — CDN itu tidak mengirim header CORS
+  // sehingga selalu gagal diambil oleh Service Worker (beda dari cdnjs/jsdelivr di bawah ini).
+  // Dia tetap jalan normal lewat <script> tag biasa, cuma tidak bisa di-precache untuk offline.
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css',
   'https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css',
   'https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js',
@@ -15,11 +17,15 @@ const ASSET_CACHE = [
   'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js'
 ];
 
-// Simpan aset saat pertama kali dibuka
+// Simpan aset saat pertama kali dibuka — satu-satu, bukan addAll(), supaya satu aset gagal
+// (mis. CDN tanpa CORS, sedang offline) tidak menggagalkan seluruh instalasi Service Worker
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(c => c.addAll(ASSET_CACHE))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(async c => {
+      await Promise.all(ASSET_CACHE.map(url =>
+        c.add(url).catch(err => console.warn('SW: gagal cache', url, err))
+      ));
+    }).then(() => self.skipWaiting())
   );
 });
 
