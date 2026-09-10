@@ -58,7 +58,10 @@
       <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="kegiatan" onclick="pilihTab('kegiatan')"><i class="fa-solid fa-calendar-days mr-1"></i>Kegiatan</button>
       <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="lokasi" onclick="pilihTab('lokasi')"><i class="fa-solid fa-location-dot mr-1"></i>Lokasi</button>
       <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="lokal" onclick="pilihTab('lokal')"><i class="fa-solid fa-database mr-1"></i>Data Lokal</button>
-      <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="hikmah" onclick="pilihTab('hikmah')"><i class="fa-solid fa-book-open mr-1"></i>Hikmah</button>
+      <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="hikmah" onclick="pilihTab('hikmah')">
+        <i class="fa-solid fa-book-open mr-1"></i>Hikmah
+        <span id="badgeHikmah" class="hidden ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">0</span>
+      </button>
     </div>
 
     <!-- ===== TAB PENGGUNA ===== -->
@@ -318,9 +321,12 @@
       const aktif = users.filter(u => u.status === 'aktif');
 
       document.getElementById('listPending').innerHTML = pending.length ? pending.map(u => `
-        <div class="flex justify-between items-center p-2 bg-warn/10 rounded-lg">
-          <span class="text-sm font-medium">${u.user}</span>
-          <div class="flex gap-2">
+        <div class="flex justify-between items-start p-2 bg-warn/10 rounded-lg gap-2">
+          <div>
+            <p class="text-sm font-medium">${escapeHtml(u.user)}${u.namaLengkap ? ' — ' + escapeHtml(u.namaLengkap) : ''}</p>
+            ${u.jamaah ? `<p class="text-xs text-gray-500">Jama'ah: ${escapeHtml(u.jamaah)}${u.munasiq ? ' &middot; Munasiq: ' + escapeHtml(u.munasiq) : ''}</p>` : ''}
+          </div>
+          <div class="flex gap-2 flex-shrink-0">
             <button onclick="setujuiUser('${u.user}')" class="text-xs bg-prim-600 text-white px-3 py-1 rounded-lg">Setujui</button>
             <button onclick="tolakUser('${u.user}')" class="text-xs bg-red-500 text-white px-3 py-1 rounded-lg">Tolak</button>
           </div>
@@ -553,6 +559,7 @@
         document.getElementById('listHikmahHapus').innerHTML = pesan;
         return;
       }
+      perbaruiBadgeHikmah(res.baru.length + res.editUsulan.length + res.hapusUsulan.length);
       const tombolSetujuiTolak = (id) => `
         <button onclick="setujuiArtikelHikmah('${id}')" class="text-xs bg-prim-600 text-white px-3 py-1.5 rounded-lg">Setujui</button>
         <button onclick="tolakArtikelHikmah('${id}')" class="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg">Tolak</button>`;
@@ -572,6 +579,11 @@
           `)).join('')
         : '<p class="text-sm text-gray-400">Tidak ada permintaan hapus.</p>';
     }
+    function perbaruiBadgeHikmah(jumlah) {
+      const badge = document.getElementById('badgeHikmah');
+      badge.textContent = jumlah;
+      badge.classList.toggle('hidden', jumlah === 0);
+    }
     async function setujuiArtikelHikmah(id) {
       await panggilAPI({ aksi: 'setujuiHikmah', id });
       muatModerasiHikmah();
@@ -589,6 +601,7 @@
       muatGaleri();
       muatKegiatan();
       tampilkanJumlahCache();
+      muatModerasiHikmah(); // supaya badge jumlah menunggu langsung kelihatan tanpa perlu buka tab dulu
     });
   </script>
 </body>
