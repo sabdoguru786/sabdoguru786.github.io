@@ -77,9 +77,10 @@
     </div>
 
     <div class="bg-white rounded-2xl shadow-lg p-6 text-center">
-      <!-- Foto/Avatar -->
-      <div id="avatarLingkaran" class="w-24 h-24 rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold mb-4">
+      <!-- Foto — persegi panjang ke bawah (rasio potret ~3:4), bukan bulat -->
+      <div id="avatarLingkaran" class="w-36 h-48 sm:w-40 sm:h-52 rounded-xl mx-auto mb-4 overflow-hidden flex items-center justify-center text-white text-5xl font-bold">
         <span id="avatarHuruf">?</span>
+        <img id="fotoTampil" class="hidden w-full h-full object-cover" alt="Foto" />
       </div>
       <h2 id="tampilNama" class="text-xl font-bold text-gray-800">-</h2>
       <p id="tampilAlamat" class="text-gray-500 text-sm mt-1">-</p>
@@ -95,14 +96,29 @@
         </div>
       </div>
 
-      <!-- Tombol Edit -->
-      <button id="btnEdit" type="button" onclick="toggleEdit()" class="mt-6 text-sm text-prim-700 font-medium hover:underline">
-        <i id="ikonEdit" class="fa-solid fa-chevron-down mr-1 transition-transform"></i>Edit Data
-      </button>
+      <!-- Tombol Edit & Hapus — sejajar -->
+      <div class="grid grid-cols-2 gap-3 mt-6">
+        <button id="btnEdit" type="button" onclick="toggleEdit()" class="py-2 rounded-lg text-sm font-semibold border border-prim-300 text-prim-700 hover:bg-prim-50 flex items-center justify-center gap-1">
+          <i id="ikonEdit" class="fa-solid fa-chevron-down transition-transform"></i>Edit
+        </button>
+        <button id="btnHapus" onclick="hapus()" class="hidden py-2 rounded-lg text-sm font-semibold bg-red-50 text-red-600 hover:bg-red-100">
+          <i class="fa-solid fa-trash mr-1"></i>Hapus
+        </button>
+      </div>
 
       <!-- Form Edit — slidedown -->
       <div id="formEditWrap" class="overflow-hidden transition-all duration-300 text-left" style="max-height: 0;">
         <div class="pt-4 mt-3 border-t space-y-3">
+          <div>
+            <label class="text-sm text-gray-500">Foto</label>
+            <div class="flex items-center gap-3 mt-1">
+              <div class="w-14 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0" style="height: 4.5rem;">
+                <img id="previewFotoImg" class="hidden w-full h-full object-cover" alt="Pratinjau" />
+                <i id="previewFotoIkon" class="fa-solid fa-image"></i>
+              </div>
+              <input type="file" id="fFoto" accept="image/*" onchange="pratinjauFoto()" class="text-sm flex-1" />
+            </div>
+          </div>
           <div>
             <label class="text-sm text-gray-500">Nama</label>
             <input type="text" id="nama" class="w-full p-3 border rounded-lg mt-1" />
@@ -144,9 +160,6 @@
       </button>
       <button id="btnBersihkanTanda" onclick="bersihkanTanda()" class="hidden w-full py-2 bg-gray-100 text-gray-600 rounded-lg mt-2">
         <i class="fa-solid fa-eraser mr-2"></i>Bersihkan Tanda
-      </button>
-      <button id="btnHapus" onclick="hapus()" class="hidden w-full py-2 bg-red-50 text-red-600 rounded-lg mt-2">
-        <i class="fa-solid fa-trash mr-2"></i>Hapus Data Ini
       </button>
     </div>
   </main>
@@ -227,6 +240,40 @@
     }
     function simpanCacheLokal(data) {
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+    }
+
+    // === UPLOAD FOTO ORANG KE GOOGLE DRIVE ===
+    function bacaFileSebagaiBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    async function uploadFotoKeDrive(file) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert('Ukuran foto maksimal 8MB');
+        return null;
+      }
+      const base64 = await bacaFileSebagaiBase64(file);
+      const res = await panggilAPI({ aksi: 'uploadFoto', base64, mime: file.type, namaFile: file.name });
+      if (!res.ok) { alert('Gagal unggah foto: ' + (res.msg || '')); return null; }
+      return res; // { ok, url, fileId }
+    }
+    // Pratinjau langsung di form begitu file dipilih (sebelum benar-benar diupload saat Simpan)
+    function pratinjauFoto() {
+      const file = document.getElementById('fFoto').files[0];
+      if (!file) return;
+      const gambar = document.getElementById('previewFotoImg');
+      const ikon = document.getElementById('previewFotoIkon');
+      const reader = new FileReader();
+      reader.onload = () => {
+        gambar.src = reader.result;
+        gambar.classList.remove('hidden');
+        ikon.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -335,6 +382,32 @@
       });
     }
 
+    function terapkanTampilanFoto(data) {
+      const gambar = document.getElementById('fotoTampil');
+      const huruf = document.getElementById('avatarHuruf');
+      if (data.foto) {
+        gambar.src = data.foto;
+        gambar.classList.remove('hidden');
+        huruf.classList.add('hidden');
+      } else {
+        gambar.classList.add('hidden');
+        huruf.classList.remove('hidden');
+      }
+
+      // Pratinjau di form Edit juga ikut nunjukkan foto yang sudah ada
+      const previewGambar = document.getElementById('previewFotoImg');
+      const previewIkon = document.getElementById('previewFotoIkon');
+      document.getElementById('fFoto').value = '';
+      if (data.foto) {
+        previewGambar.src = data.foto;
+        previewGambar.classList.remove('hidden');
+        previewIkon.classList.add('hidden');
+      } else {
+        previewGambar.classList.add('hidden');
+        previewIkon.classList.remove('hidden');
+      }
+    }
+
     function isiTampilan(data) {
       dataLama = data;
       const nama = data.nama || '';
@@ -343,6 +416,7 @@
       document.getElementById('avatarHuruf').textContent = (nama.trim().charAt(0) || '?').toUpperCase();
       terapkanTampilanJenis(data.jenis || 'Umum');
       terapkanTampilanStatus(data.status || 'belum');
+      terapkanTampilanFoto(data);
 
       // Isi form edit (tersembunyi sampai tombol Edit diklik)
       document.getElementById('nama').value = data.nama || '';
@@ -375,12 +449,22 @@
     }
 
     // Simpan Nama/Alamat/Jama'ah lokal dulu (instan) → kirim ke Google Sheets di belakang layar
-    function simpan() {
+    async function simpan() {
       const nama = document.getElementById('nama').value.trim();
       const alamat = document.getElementById('alamat').value.trim();
       const jenis = document.getElementById('jenis').value;
       const status = (dataLama && dataLama.status) || 'belum';
-      const data = { id, nama, alamat, jenis, status };
+      let foto = (dataLama && dataLama.foto) || '';
+
+      const fileFoto = document.getElementById('fFoto').files[0];
+      if (fileFoto) {
+        tampilkanLoading();
+        const hasil = await uploadFotoKeDrive(fileFoto);
+        sembunyikanLoading();
+        if (hasil) foto = hasil.url;
+      }
+
+      const data = { id, nama, alamat, jenis, status, foto };
 
       const cache = bacaCacheLokal();
       const idx = cache.findIndex(d => d.id === id);
