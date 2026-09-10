@@ -100,12 +100,50 @@
 
   <nav class="gradient-bg fixed top-0 left-0 right-0 z-40 shadow-lg">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center gap-3 h-16">
-        <a href="index.html" class="text-white text-xl"><i class="fa-solid fa-arrow-left"></i></a>
-        <h1 class="text-white text-lg font-bold">Hikmah</h1>
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <a id="btnKembaliNav" href="index.html" class="text-white text-xl"><i class="fa-solid fa-arrow-left"></i></a>
+          <h1 class="text-white text-lg font-bold">Hikmah</h1>
+        </div>
+        <button onclick="openUserMenu()" class="text-white text-xl p-2 rounded-full hover:bg-white/20 transition">
+          <i class="fa-solid fa-circle-user"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Dropdown Menu Profil -->
+    <div id="userMenu" class="hidden absolute right-4 mt-2 w-56 bg-white rounded-xl shadow-xl overflow-hidden z-50">
+      <div class="p-4 gradient-bg text-white">
+        <p class="font-semibold" id="navNama">Pengguna</p>
+        <p class="text-sm opacity-80" id="navRole">-</p>
+      </div>
+      <div class="p-2">
+        <button onclick="openProfile()" class="w-full text-left px-4 py-2 hover:bg-prim-50 rounded flex items-center gap-2">
+          <i class="fa-solid fa-id-card text-prim-600"></i> Profile
+        </button>
+        <button onclick="logout()" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded flex items-center gap-2">
+          <i class="fa-solid fa-right-from-bracket"></i> Keluar
+        </button>
       </div>
     </div>
   </nav>
+
+  <!-- Modal Profile -->
+  <div id="profileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl text-center" data-aos="zoom-in">
+      <div class="w-20 h-20 gradient-bg text-white rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <h3 class="text-xl font-bold text-prim-800" id="profileNama">-</h3>
+      <p class="text-sm text-gray-500 mb-4" id="profileRole">-</p>
+      <div id="profileDetail" class="text-left bg-gray-50 rounded-lg p-3 mb-4 text-sm space-y-1"></div>
+      <div class="space-y-2">
+        <button onclick="logout()" class="w-full py-2 bg-red-50 text-red-600 rounded-lg font-medium">
+          <i class="fa-solid fa-right-from-bracket mr-2"></i>Keluar
+        </button>
+        <button onclick="closeProfile()" class="w-full py-2 border rounded-lg">Tutup</button>
+      </div>
+    </div>
+  </div>
 
   <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
     <div class="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-3">
@@ -246,6 +284,64 @@
     let kategoriAktif = 'Kalam Hikmah';
     let semuaArtikel = [];
 
+    // Sama seperti index.html/register.html: index.html khusus admin/subAdmin, ATAU role user
+    // yang jama'ahnya Salikin/Salikah dengan Munasiq "Brebes Selatan"
+    function bolehAksesIndex(role, jamaah, munasiq) {
+      if (role !== 'user') return true;
+      const munasiqCocok = (munasiq || '').trim().toLowerCase().includes('brebes selatan');
+      return (jamaah === 'Salikin' || jamaah === 'Salikah') && munasiqCocok;
+    }
+
+    function openUserMenu() {
+      document.getElementById('userMenu').classList.toggle('hidden');
+    }
+
+    function dataProfilSaatIni() {
+      return {
+        username: localStorage.getItem('user') || '-',
+        namaLengkap: localStorage.getItem('namaLengkap') || '',
+        alamat: localStorage.getItem('alamat') || '',
+        jamaah: localStorage.getItem('jamaah') || '',
+        munasiq: localStorage.getItem('munasiq') || ''
+      };
+    }
+
+    function isiNavDanProfil() {
+      const p = dataProfilSaatIni();
+      const labelPeran = { admin: 'Admin', subAdmin: 'Sub Admin', user: 'Pengguna' };
+
+      document.getElementById('navNama').textContent = p.namaLengkap || p.username;
+      document.getElementById('navRole').textContent = labelPeran[peran] || peran;
+
+      // Panah kembali: ke Dashboard Data kalau memang boleh akses, kalau tidak ke Beranda publik saja
+      document.getElementById('btnKembaliNav').href = bolehAksesIndex(peran, p.jamaah, p.munasiq) ? 'index.html' : 'home.html';
+    }
+
+    function openProfile() {
+      document.getElementById('userMenu').classList.add('hidden');
+      const p = dataProfilSaatIni();
+      const labelPeran = { admin: 'Admin', subAdmin: 'Sub Admin', user: 'Pengguna' };
+      document.getElementById('profileNama').textContent = p.namaLengkap || p.username;
+      document.getElementById('profileRole').textContent = labelPeran[peran] || peran;
+      const baris = [['Username', p.username]];
+      if (p.namaLengkap) baris.push(['Nama Lengkap', p.namaLengkap]);
+      if (p.alamat) baris.push(['Alamat', p.alamat]);
+      if (p.jamaah) baris.push(["Jama'ah", p.jamaah]);
+      if (p.munasiq) baris.push(['Munasiq', p.munasiq]);
+      document.getElementById('profileDetail').innerHTML = baris.map(([label, nilai]) =>
+        `<div class="flex justify-between gap-2"><span class="text-gray-500">${label}</span><span class="font-medium text-gray-700 text-right">${nilai}</span></div>`
+      ).join('');
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+    function closeProfile() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function logout() {
+      ['user', 'sandiHash', 'role', 'namaLengkap', 'alamat', 'jamaah', 'munasiq'].forEach(k => localStorage.removeItem(k));
+      window.location.href = 'home.html';
+    }
+
     async function panggilAPI(payload) {
       const body = Object.assign({
         user: localStorage.getItem('user') || '',
@@ -291,9 +387,10 @@
     document.addEventListener('DOMContentLoaded', () => {
       AOS.init({ duration: 500, once: true });
       if (!localStorage.getItem('user') || !localStorage.getItem('sandiHash')) {
-        location.href = 'index.html';
+        location.href = 'register.html';
         return;
       }
+      isiNavDanProfil();
       muatArtikel();
     });
 
