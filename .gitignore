@@ -1,0 +1,9 @@
+# Berisi ID Spreadsheet asli — JANGAN pernah di-commit ke repo publik.
+# Salin isinya ke Apps Script editor (script.google.com) secara manual,
+# gunakan Code.example.gs sebagai referensi struktur kode yang aman untuk publik.
+Code.gs
+
+# File konfigurasi lokal lain yang mungkin berisi kredensial
+.clasp.json
+*.local.json
+.env

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beranda — Data Pembagian</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            prim: {
+              50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',
+              400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',
+              800:'#166534',900:'#14532d'
+            },
+            sec: '#0ea5e9',
+            kayu: '#92400e',
+            tanah: '#78350f'
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .gradient-bg {
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
+      }
+      .gradient-text {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        background-image: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+      }
+      .hero-paralax {
+        background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?fit=crop&w=1920&q=80');
+        background-attachment: fixed;
+        background-position: center;
+        background-size: cover;
+      }
+      .card-shadow {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+      }
+      .scroll-kiri-kanan {
+        animation: gulirKanan 30s linear infinite;
+      }
+      @keyframes gulirKanan {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+    }
+  </style>
+</head>
+<body class="bg-prim-50 text-gray-800 font-sans scroll-smooth">
+
+  <!-- NAVBAR TETAP DI ATAS -->
+  <header class="fixed top-0 left-0 right-0 z-50 gradient-bg shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <h1 class="text-white text-xl font-bold tracking-wide flex items-center gap-2">
+          <i class="fa-solid fa-leaf"></i>
+          <span class="hidden sm:inline">PAS</span>
+        </h1>
+        <nav class="hidden md:flex items-center gap-6">
+          <a href="#" class="text-white font-medium hover:text-prim-100">Beranda</a>
+          <a href="#tentang" class="text-white/80 hover:text-white">Tentang</a>
+          <a href="#galeri" class="text-white/80 hover:text-white">Galeri</a>
+          <a href="#kegiatan" class="text-white/80 hover:text-white">Kegiatan</a>
+          <a href="register.html" class="text-white/80 hover:text-white">Daftar</a>
+          <a href="index.html" class="bg-white text-prim-700 px-4 py-2 rounded-lg font-medium hover:bg-prim-100 transition shadow">
+            <i class="fa-solid fa-door-open mr-1"></i>Masuk Aplikasi
+          </a>
+        </nav>
+        <button onclick="toggleMenuHp()" class="md:hidden text-white text-2xl">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Menu HP -->
+    <div id="menuHp" class="md:hidden hidden bg-white shadow-xl">
+      <nav class="p-4 space-y-3">
+        <a href="#" class="block py-2 text-prim-700 font-medium">Beranda</a>
+        <a href="#tentang" class="block py-2 text-gray-600">Tentang Usaha</a>
+        <a href="#galeri" class="block py-2 text-gray-600">Galeri Foto</a>
+        <a href="#kegiatan" class="block py-2 text-gray-600">Kegiatan</a>
+        <a href="register.html" class="block py-2 text-gray-600">Daftar Akun</a>
+        <a href="index.html" class="block py-2 gradient-bg text-white rounded-lg text-center font-medium">Buka Aplikasi</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO PARALAX -->
+  <section class="hero-paralax min-h-screen flex items-center justify-center pt-16 relative">
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div class="relative z-10 text-center text-white px-4 max-w-4xl mx-auto" data-aos="fade-up">
+      <h2 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+        Selamat Datang di<br>
+        <span class="text-prim-300">Halaman PAS Songgom BRESEL</span>
+      </h2>
+      <p class="text-lg md:text-xl text-gray-100 mb-8 max-w-2xl mx-auto">
+        Website Dokumentasi dan arsip kegiatan kemajlisan
+      </p>
+      <a href="index.html" class="inline-block gradient-bg px-8 py-3 rounded-full text-lg font-semibold shadow-xl hover:opacity-90 transition">
+        <i class="fa-solid fa-gauge-high mr-2"></i>Buka Aplikasi
+      </a>
+    </div>
+  </section>
+
+  <!-- TENTANG USAHA -->
+  <section id="tentang" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <div data-aos="fade-right">
+        <h3 id="tentangJudul" class="text-3xl font-bold gradient-text mb-4">Tentang Kami</h3>
+        <p id="tentangTeks" class="text-gray-600 mb-4 leading-relaxed whitespace-pre-line">
+          Kegiatan kemajlisan/jama'ah PAS Hizboel Akmaliah Songgom Lor Brebes Selatan. Menyimpan informasi dan data kegiatan kemajlisan sebagai dokumentasi.
+        </p>
+      </div>
+      <div data-aos="fade-left" class="rounded-2xl overflow-hidden card-shadow hover-lift">
+        <img id="tentangGambar" src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?fit=crop&w=800&q=80" alt="Tentang Kami" class="w-full h-full object-cover">
+      </div>
+    </div>
+  </section>
+
+  <!-- GALERI FOTO — CAROUSEL OTOMATIS -->
+  <section id="galeri" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12" data-aos="fade-up">
+        <h3 class="text-3xl font-bold gradient-text mb-2">Galeri Foto</h3>
+        <p class="text-gray-500">Dokumentasi kegiatan dan suasana lingkungan</p>
+      </div>
+
+      <div class="relative overflow-hidden rounded-2xl card-shadow">
+        <div id="galeriRel" class="flex transition-transform duration-700 ease-out">
+          <!-- Gambar akan berputar otomatis -->
+          <div class="min-w-full md:min-w-1/3 flex-shrink-0">
+            <img src="https://images.unsplash.com/photo-1518173946687-a4c036bc580a?fit=crop&w=1200&q=80" class="w-full h-72 object-cover" alt="Galeri 1">
+          </div>
+          <div class="min-w-full md:min-w-1/3 flex-shrink-0">
+            <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?fit=crop&w=1200&q=80" class="w-full h-72 object-cover" alt="Galeri 2">
+          </div>
+          <div class="min-w-full md:min-w-1/3 flex-shrink-0">
+            <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?fit=crop&w=1200&q=80" class="w-full h-72 object-cover" alt="Galeri 3">
+          </div>
+          <div class="min-w-full md:min-w-1/3 flex-shrink-0">
+            <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?fit=crop&w=1200&q=80" class="w-full h-72 object-cover" alt="Galeri 4">
+          </div>
+          <!-- Duplikat untuk putar mulus -->
+          <div class="min-w-full md:min-w-1/3 flex-shrink-0">
+            <img src="https://images.unsplash.com/photo-1518173946687-a4c036bc580a?fit=crop&w=1200&q=80" class="w-full h-72 object-cover" alt="Galeri 1">
+          </div>
+        </div>
+        <!-- Tombol geser -->
+        <button onclick="geserGaleri(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg text-prim-700">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button onclick="geserGaleri(1)" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white w-11 h-11 rounded-full flex items-center justify-center shadow-lg text-prim-700">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEGIATAN — BERJALAN KIRI KE KANAN JEDA 3 DETIK -->
+  <section id="kegiatan" class="py-20 bg-prim-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12" data-aos="fade-up">
+        <h3 class="text-3xl font-bold gradient-text mb-2">Kegiatan</h3>
+        <p class="text-gray-500">Kegiatan yang sedang dan akan dilaksanakan</p>
+      </div>
+    </div>
+
+    <!-- Gulir Otomatis Kiri → Kanan -->
+    <div class="overflow-hidden">
+      <div id="relKegiatan" class="flex gap-6 scroll-kiri-kanan w-max">
+        <!-- Baris 1 -->
+        <div class="w-72 flex-shrink-0 bg-white rounded-2xl card-shadow hover-lift overflow-hidden" data-aos="fade-up">
+          <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?fit=crop&w=400&q=80" class="w-full h-44 object-cover">
+          <div class="p-4">
+            <h4 class="font-bold text-lg text-prim-800">Pencatatan Data</h4>
+            <p class="text-sm text-gray-500 mt-1">Mencatat dan mendata semua keperluan secara teratur dan tertib.</p>
+          </div>
+        </div>
+        <div class="w-72 flex-shrink-0 bg-white rounded-2xl card-shadow hover-lift overflow-hidden" data-aos="fade-up" data-aos-delay="50">
+          <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?fit=crop&w=400&q=80" class="w-full h-44 object-cover">
+          <div class="p-4">
+            <h4 class="font-bold text-lg text-prim-800">Pembagian & Distribusi</h4>
+            <p class="text-sm text-gray-500 mt-1">Membagikan dan mendistribusikan kepada yang berhak dengan adil.</p>
+          </div>
+        </div>
+        <div class="w-72 flex-shrink-0 bg-white rounded-2xl card-shadow hover-lift overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+          <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?fit=crop&w=400&q=80" class="w-full h-44 object-cover">
+          <div class="p-4">
+            <h4 class="font-bold text-lg text-prim-800">Pemeliharaan Lingkungan</h4>
+            <p class="text-sm text-gray-500 mt-1">Menjaga kebersihan, keindahan, dan kelestarian lingkungan bersama.</p>
+          </div>
+        </div>
+        <!-- Duplikat agar mulus -->
+        <div class="w-72 flex-shrink-0 bg-white rounded-2xl card-shadow hover-lift overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?fit=crop&w=400&q=80" class="w-full h-44 object-cover">
+          <div class="p-4">
+            <h4 class="font-bold text-lg text-prim-800">Pencatatan Data</h4>
+            <p class="text-sm text-gray-500 mt-1">Mencatat dan mendata semua keperluan secara teratur dan tertib.</p>
+          </div>
+        </div>
+        <div class="w-72 flex-shrink-0 bg-white rounded-2xl card-shadow hover-lift overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?fit=crop&w=400&q=80" class="w-full h-44 object-cover">
+          <div class="p-4">
+            <h4 class="font-bold text-lg text-prim-800">Pembagian & Distribusi</h4>
+            <p class="text-sm text-gray-500 mt-1">Membagikan dan mendistribusikan kepada yang berhak dengan adil.</p>
+          </div>
+        </div>
+        <div class="w-72 flex-shrink-0 bg-white rounded-2xl card-shadow hover-lift overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?fit=crop&w=400&q=80" class="w-full h-44 object-cover">
+          <div class="p-4">
+            <h4 class="font-bold text-lg text-prim-800">Pemeliharaan Lingkungan</h4>
+            <p class="text-sm text-gray-500 mt-1">Menjaga kebersihan, keindahan, dan kelestarian lingkungan bersama.</p>
+          </div>
+        </div>
+        <div class="w-72 flex-shrink-0 bg-white rounded-2xl card-shadow hover-lift overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1518173946687-a4c036bc580a?fit=crop&w=400&q=80" class="w-full h-44 object-cover">
+          <div class="p-4">
+            <h4 class="font-bold text-lg text-prim-800">Pelaporan Berkala</h4>
+            <p class="text-sm text-gray-500 mt-1">Menyusun laporan kegiatan dan pembagian secara transparan dan akuntabel.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="gradient-bg text-white pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <h4 class="text-xl font-bold mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-leaf"></i> PAS Songgom
+          </h4>
+          <p class="text-prim-100 text-sm leading-relaxed">
+            Menyimpan dokumentasi dan kegiatan Jama'ah dalam berbagai bidang di kalangan umat.
+          </p>
+        </div>
+        <div>
+          <h5 class="font-semibold mb-3">Tautan</h5>
+          <ul class="space-y-2 text-sm text-prim-100">
+            <li><a href="#" class="hover:text-white">Beranda</a></li>
+            <li><a href="#tentang" class="hover:text-white">Tentang Usaha</a></li>
+            <li><a href="#galeri" class="hover:text-white">Galeri Foto</a></li>
+            <li><a href="#kegiatan" class="hover:text-white">Kegiatan</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="font-semibold mb-3">Aplikasi</h5>
+          <ul class="space-y-2 text-sm text-prim-100">
+            <li><a href="index.html" class="hover:text-white">Masuk Aplikasi</a></li>
+            <li><a href="index.html" class="hover:text-white">Dashboard Data</a></li>
+            <li><a href="index.html" class="hover:text-white">Kelola Pengguna</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="font-semibold mb-3">Kontak</h5>
+          <ul class="space-y-2 text-sm text-prim-100 mb-3">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-envelope w-4"></i> info@pas-songgom.com</li>
+            <li id="lokasiTeks" class="hidden flex items-start gap-2"><i class="fa-solid fa-location-dot w-4 mt-1"></i> <span id="lokasiTeksIsi"></span></li>
+          </ul>
+          <div id="petaKontak" class="hidden rounded-xl overflow-hidden border border-white/20">
+            <iframe id="petaKontakFrame" style="border:0;width:100%;height:160px" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+      <div class="border-t border-white/20 pt-6 text-center text-sm text-prim-200">
+        <p>© 2025–2026 Data Pembagian. Seluruh hak cipta dilindungi.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    AOS.init({ duration: 800, once: true });
+
+    // === Konten dinamis dari pengaturan admin (Setting) ===
+    // Bacaan publik (teks/gambar promosi, galeri, kegiatan, lokasi) — tidak perlu login.
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzlMntECN8Yl13KgTQuPiBPQ8zUtNRnJ7cDOOKwQCwOVBPydYgVZy6xR1vRmqkRtzKe/exec";
+
+    async function panggilAPIPublik(payload) {
+      try {
+        return await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json());
+      } catch (e) {
+        return { ok: false };
+      }
+    }
+
+    async function muatKontenHome() {
+      const res = await panggilAPIPublik({ aksi: 'bacaKonten' });
+      if (res.ok) {
+        if (res.tentang.judul) document.getElementById('tentangJudul').textContent = res.tentang.judul;
+        if (res.tentang.teks) document.getElementById('tentangTeks').textContent = res.tentang.teks;
+        if (res.tentang.gambar) document.getElementById('tentangGambar').src = res.tentang.gambar;
+
+        if (res.lokasi && res.lokasi.lat && res.lokasi.lng) {
+          const lat = parseFloat(res.lokasi.lat), lng = parseFloat(res.lokasi.lng);
+          const d = 0.01;
+          const bbox = `${lng - d}%2C${lat - d}%2C${lng + d}%2C${lat + d}`;
+          document.getElementById('petaKontakFrame').src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&marker=${lat}%2C${lng}`;
+          document.getElementById('petaKontak').classList.remove('hidden');
+          if (res.lokasi.alamat) {
+            document.getElementById('lokasiTeksIsi').textContent = res.lokasi.alamat;
+            document.getElementById('lokasiTeks').classList.remove('hidden');
+          }
+        }
+      }
+    }
+
+    async function muatGaleriHome() {
+      const res = await panggilAPIPublik({ aksi: 'bacaGaleri' });
+      if (!res.ok || !(res.data || []).length) return; // biarkan foto contoh bawaan
+      const galeri = document.getElementById('galeriRel');
+      const html = res.data.map(g => `
+        <div class="min-w-full md:min-w-1/3 flex-shrink-0">
+          <img src="${g.url}" class="w-full h-72 object-cover" alt="Galeri">
+        </div>`).join('');
+      // Duplikasi supaya gulir otomatis tetap mulus
+      galeri.innerHTML = html + (res.data.length > 1 ? html : '');
+    }
+
+    async function muatKegiatanHome() {
+      const res = await panggilAPIPublik({ aksi: 'bacaKegiatan' });
+      if (!res.ok || !(res.data || []).length) return; // biarkan kartu contoh bawaan
+      const rel = document.getElementById('relKegiatan');
+      const kartu = (k) => `
+        <div class="w-72 flex-shrink-0 bg-white rounded-2xl card-shadow hover-lift overflow-hidden">
+          ${k.url ? `<img src="${k.url}" class="w-full h-44 object-cover">` : ''}
+          <div class="p-4">
+            <h4 class="font-bold text-lg text-prim-800">${k.judul || ''}</h4>
+            <p class="text-sm text-gray-500 mt-1">${k.deskripsi || ''}</p>
+          </div>
+        </div>`;
+      const html = res.data.map(kartu).join('');
+      rel.innerHTML = html + html; // duplikasi untuk gulir mulus
+    }
+
+    muatKontenHome();
+    muatGaleriHome();
+    muatKegiatanHome();
+
+    // Menu HP
+    function toggleMenuHp() {
+      document.getElementById('menuHp').classList.toggle('hidden');
+    }
+
+    // Tutup menu saat klik tautan
+    document.querySelectorAll('#menuHp a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('menuHp').classList.add('hidden');
+      });
+    });
+
+    // Galeri Carousel Otomatis — Jeda 3 Detik
+    const galeri = document.getElementById('galeriRel');
+    const lebar = galeri.querySelector('div').offsetWidth;
+    let posisi = 0;
+
+    function geserGaleri(arah) {
+      const jumlah = galeri.children.length;
+      posisi += arah;
+      if (posisi >= jumlah) posisi = 0;
+      if (posisi < 0) posisi = jumlah - 2;
+      galeri.style.transform = `translateX(-${posisi * (100 / 3)}%)`;
+    }
+
+    // Otomatis geser setiap 3 detik
+    setInterval(() => {
+      const jumlah = galeri.children.length;
+      posisi++;
+      if (posisi >= jumlah - 1) {
+        posisi = 0;
+        galeri.style.transition = 'none';
+        galeri.style.transform = `translateX(0)`;
+        setTimeout(() => {
+          galeri.style.transition = 'transform 0.7s ease-out';
+          posisi = 1;
+          galeri.style.transform = `translateX(-${posisi * (100 / 3)}%)`;
+        }, 50);
+        return;
+      }
+      galeri.style.transition = 'transform 0.7s ease-out';
+      galeri.style.transform = `translateX(-${posisi * (100 / 3)}%)`;
+    }, 3000); // Jeda 3 detik
+  </script>
+</body>
+</html>

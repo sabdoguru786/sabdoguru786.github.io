@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setting Admin — PAS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            prim: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d' },
+            sec:'#0ea5e9', warn:'#f59e0b', danger:'#ef4444'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%); }
+    .card-shadow { box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+    .loading-spin { animation: spin 0.8s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .tab-aktif { background: #16a34a; color: #fff; }
+    #petaLokasi { height: 320px; border-radius: 0.75rem; z-index: 0; }
+  </style>
+</head>
+<body class="bg-prim-50 text-gray-800 font-sans">
+
+  <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-3">
+      <i class="fa-solid fa-circle-notch text-3xl text-prim-600 loading-spin"></i>
+      <span class="text-gray-700 font-medium">Sedang memproses...</span>
+    </div>
+  </div>
+
+  <nav class="gradient-bg text-white py-3 px-4 flex items-center justify-between shadow-lg sticky top-0 z-40">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-xl"><i class="fa-solid fa-arrow-left"></i></a>
+      <h1 class="text-lg font-bold">Setting Admin</h1>
+    </div>
+    <button onclick="logout()" class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg">
+      <i class="fa-solid fa-right-from-bracket mr-1"></i>Keluar
+    </button>
+  </nav>
+
+  <main class="max-w-4xl mx-auto p-4 pb-16">
+
+    <!-- Tab -->
+    <div class="flex gap-2 overflow-x-auto pb-2 mb-4">
+      <button class="tab-btn tab-aktif px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap" data-tab="pengguna" onclick="pilihTab('pengguna')"><i class="fa-solid fa-users mr-1"></i>Pengguna</button>
+      <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="tentang" onclick="pilihTab('tentang')"><i class="fa-solid fa-circle-info mr-1"></i>Tentang Kami</button>
+      <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="galeri" onclick="pilihTab('galeri')"><i class="fa-solid fa-images mr-1"></i>Galeri</button>
+      <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="kegiatan" onclick="pilihTab('kegiatan')"><i class="fa-solid fa-calendar-days mr-1"></i>Kegiatan</button>
+      <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="lokasi" onclick="pilihTab('lokasi')"><i class="fa-solid fa-location-dot mr-1"></i>Lokasi</button>
+      <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="lokal" onclick="pilihTab('lokal')"><i class="fa-solid fa-database mr-1"></i>Data Lokal</button>
+    </div>
+
+    <!-- ===== TAB PENGGUNA ===== -->
+    <section id="tab-pengguna" class="space-y-4">
+      <div class="bg-white rounded-xl card-shadow p-4">
+        <h2 class="font-bold text-prim-800 mb-3">Menunggu Persetujuan</h2>
+        <div id="listPending" class="space-y-2"><p class="text-sm text-gray-400">Memuat...</p></div>
+      </div>
+
+      <div class="bg-white rounded-xl card-shadow p-4">
+        <h2 class="font-bold text-prim-800 mb-3">Tambah Pengguna Baru</h2>
+        <div class="grid sm:grid-cols-4 gap-2">
+          <input type="text" id="newUser" placeholder="Nama pengguna" class="p-2 border rounded-lg sm:col-span-1" />
+          <input type="password" id="newPass" placeholder="Sandi" class="p-2 border rounded-lg sm:col-span-1" />
+          <select id="newRole" class="p-2 border rounded-lg sm:col-span-1">
+            <option value="user">User (lihat saja)</option>
+            <option value="subAdmin">Sub Admin (CRUD tanpa hapus)</option>
+            <option value="admin">Admin (akses penuh)</option>
+          </select>
+          <button onclick="tambahUserBaru()" class="p-2 gradient-bg text-white rounded-lg font-medium sm:col-span-1">Tambah</button>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">Pengguna yang ditambahkan admin langsung aktif, tidak perlu approval.</p>
+      </div>
+
+      <div class="bg-white rounded-xl card-shadow p-4">
+        <h2 class="font-bold text-prim-800 mb-3">Semua Pengguna</h2>
+        <div id="listUser" class="space-y-2"><p class="text-sm text-gray-400">Memuat...</p></div>
+      </div>
+    </section>
+
+    <!-- ===== TAB TENTANG KAMI ===== -->
+    <section id="tab-tentang" class="hidden space-y-4">
+      <div class="bg-white rounded-xl card-shadow p-4 space-y-3">
+        <h2 class="font-bold text-prim-800">Teks Tentang Kami</h2>
+        <div>
+          <label class="text-sm text-gray-500">Judul</label>
+          <input type="text" id="tJudul" class="w-full p-3 border rounded-lg mt-1" placeholder="Tentang Kami" />
+        </div>
+        <div>
+          <label class="text-sm text-gray-500">Deskripsi</label>
+          <textarea id="tTeks" rows="5" class="w-full p-3 border rounded-lg mt-1" placeholder="Ceritakan tentang kegiatan/kemajlisan..."></textarea>
+        </div>
+        <div>
+          <label class="text-sm text-gray-500">Gambar</label>
+          <div class="flex items-center gap-3 mt-1">
+            <img id="tGambarPreview" class="w-24 h-24 object-cover rounded-lg border hidden" />
+            <input type="file" id="tGambarFile" accept="image/*" class="text-sm" />
+          </div>
+        </div>
+        <button onclick="simpanTentang()" class="w-full py-2 gradient-bg text-white rounded-lg font-medium">Simpan Tentang Kami</button>
+      </div>
+    </section>
+
+    <!-- ===== TAB GALERI ===== -->
+    <section id="tab-galeri" class="hidden space-y-4">
+      <div class="bg-white rounded-xl card-shadow p-4">
+        <h2 class="font-bold text-prim-800 mb-3">Tambah Foto Galeri</h2>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input type="file" id="gFile" accept="image/*" class="text-sm flex-1" />
+          <button onclick="tambahFotoGaleri()" class="px-4 py-2 gradient-bg text-white rounded-lg font-medium">Unggah</button>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl card-shadow p-4">
+        <h2 class="font-bold text-prim-800 mb-3">Foto Galeri Saat Ini</h2>
+        <div id="gridGaleri" class="grid grid-cols-2 sm:grid-cols-3 gap-3"><p class="text-sm text-gray-400">Memuat...</p></div>
+      </div>
+    </section>
+
+    <!-- ===== TAB KEGIATAN ===== -->
+    <section id="tab-kegiatan" class="hidden space-y-4">
+      <div class="bg-white rounded-xl card-shadow p-4 space-y-2">
+        <h2 class="font-bold text-prim-800 mb-1">Tambah Kegiatan</h2>
+        <input type="file" id="kFile" accept="image/*" class="text-sm" />
+        <input type="text" id="kJudul" placeholder="Judul kegiatan" class="w-full p-3 border rounded-lg" />
+        <textarea id="kDeskripsi" rows="2" placeholder="Deskripsi singkat" class="w-full p-3 border rounded-lg"></textarea>
+        <button onclick="tambahKegiatanBaru()" class="w-full py-2 gradient-bg text-white rounded-lg font-medium">Tambah Kegiatan</button>
+      </div>
+      <div class="bg-white rounded-xl card-shadow p-4">
+        <h2 class="font-bold text-prim-800 mb-3">Daftar Kegiatan</h2>
+        <div id="listKegiatan" class="space-y-3"><p class="text-sm text-gray-400">Memuat...</p></div>
+      </div>
+    </section>
+
+    <!-- ===== TAB LOKASI ===== -->
+    <section id="tab-lokasi" class="hidden space-y-4">
+      <div class="bg-white rounded-xl card-shadow p-4 space-y-3">
+        <h2 class="font-bold text-prim-800">Titik Lokasi</h2>
+        <p class="text-sm text-gray-500">Klik pada peta untuk menandai titik lokasi.</p>
+        <div id="petaLokasi"></div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-sm text-gray-500">Latitude</label>
+            <input type="number" step="any" id="lLat" class="w-full p-3 border rounded-lg mt-1" />
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">Longitude</label>
+            <input type="number" step="any" id="lLng" class="w-full p-3 border rounded-lg mt-1" />
+          </div>
+        </div>
+        <div>
+          <label class="text-sm text-gray-500">Keterangan Alamat</label>
+          <input type="text" id="lAlamat" class="w-full p-3 border rounded-lg mt-1" placeholder="mis. Songgom Lor, Brebes" />
+        </div>
+        <button onclick="simpanLokasi()" class="w-full py-2 gradient-bg text-white rounded-lg font-medium">Simpan Lokasi</button>
+      </div>
+    </section>
+
+    <!-- ===== TAB DATA LOKAL ===== -->
+    <section id="tab-lokal" class="hidden space-y-4">
+      <div class="bg-white rounded-xl card-shadow p-4 space-y-3">
+        <h2 class="font-bold text-prim-800">Cache Data Lokal</h2>
+        <p class="text-sm text-gray-500">
+          Aplikasi menyimpan salinan data di perangkat ini (cache) supaya Dashboard tetap cepat dibuka tanpa menunggu koneksi ke Google Sheets.
+          Setiap perubahan data tetap otomatis dikirim ke Google Sheets di belakang layar.
+        </p>
+        <p class="text-sm">Jumlah data tersimpan di cache perangkat ini: <b id="jumlahCache">0</b></p>
+        <button onclick="hapusCacheLokal()" class="w-full py-2 bg-red-50 text-red-600 rounded-lg font-medium">
+          <i class="fa-solid fa-trash mr-2"></i>Hapus Cache Lokal
+        </button>
+        <p class="text-xs text-gray-400">Ini hanya menghapus salinan di perangkat ini — data di Google Sheets tidak terpengaruh. Dashboard akan memuat ulang dari Sheets saat dibuka berikutnya.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzlMntECN8Yl13KgTQuPiBPQ8zUtNRnJ7cDOOKwQCwOVBPydYgVZy6xR1vRmqkRtzKe/exec";
+    const CACHE_KEY = 'pasDataCache';
+
+    // === Penjagaan akses: hanya admin ===
+    if (localStorage.getItem('role') !== 'admin' || !localStorage.getItem('user')) {
+      alert('Halaman ini khusus admin.');
+      window.location.href = 'index.html';
+    }
+
+    function logout() {
+      localStorage.removeItem('user');
+      localStorage.removeItem('sandiHash');
+      localStorage.removeItem('role');
+      window.location.href = 'home.html';
+    }
+
+    async function panggilAPI(payload) {
+      const body = Object.assign({
+        user: localStorage.getItem('user') || '',
+        userPass: localStorage.getItem('sandiHash') || ''
+      }, payload);
+      return fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) }).then(r => r.json());
+    }
+    function tampilkanLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
+    function sembunyikanLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
+    function bacaFileSebagaiBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    async function uploadKeDrive(file) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert('Ukuran file maksimal 8MB');
+        return null;
+      }
+      const base64 = await bacaFileSebagaiBase64(file);
+      const res = await panggilAPI({ aksi: 'uploadFoto', base64, mime: file.type, namaFile: file.name });
+      if (!res.ok) { alert('Gagal unggah foto: ' + (res.msg || '')); return null; }
+      return res; // { ok, url, fileId }
+    }
+
+    // === TAB ===
+    function pilihTab(nama) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-aktif'));
+      document.querySelector(`.tab-btn[data-tab="${nama}"]`).classList.add('tab-aktif');
+      ['pengguna','tentang','galeri','kegiatan','lokasi','lokal'].forEach(t => {
+        document.getElementById('tab-' + t).classList.toggle('hidden', t !== nama);
+      });
+      if (nama === 'lokasi') setTimeout(() => peta && peta.invalidateSize(), 100);
+      if (nama === 'lokal') tampilkanJumlahCache();
+    }
+
+    // === PENGGUNA ===
+    async function muatPengguna() {
+      const res = await panggilAPI({ aksi: 'bacaUser' });
+      if (!res.ok) { document.getElementById('listUser').innerHTML = `<p class="text-sm text-red-500">${res.msg || 'Gagal memuat'}</p>`; return; }
+      const users = res.users || [];
+      const pending = users.filter(u => u.status !== 'aktif');
+      const aktif = users.filter(u => u.status === 'aktif');
+
+      document.getElementById('listPending').innerHTML = pending.length ? pending.map(u => `
+        <div class="flex justify-between items-center p-2 bg-warn/10 rounded-lg">
+          <span class="text-sm font-medium">${u.user}</span>
+          <div class="flex gap-2">
+            <button onclick="setujuiUser('${u.user}')" class="text-xs bg-prim-600 text-white px-3 py-1 rounded-lg">Setujui</button>
+            <button onclick="tolakUser('${u.user}')" class="text-xs bg-red-500 text-white px-3 py-1 rounded-lg">Tolak</button>
+          </div>
+        </div>
+      `).join('') : '<p class="text-sm text-gray-400">Tidak ada pendaftar baru.</p>';
+
+      const labelRole = { admin: 'Admin', subAdmin: 'Sub Admin', user: 'User' };
+      document.getElementById('listUser').innerHTML = aktif.length ? aktif.map(u => `
+        <div class="flex justify-between items-center p-2 bg-gray-50 rounded-lg gap-2">
+          <span class="text-sm font-medium flex-1">${u.user}</span>
+          <select onchange="ubahRole('${u.user}', this.value)" class="text-xs border rounded-lg p-1">
+            <option value="user" ${u.role==='user'?'selected':''}>User</option>
+            <option value="subAdmin" ${u.role==='subAdmin'?'selected':''}>Sub Admin</option>
+            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+          </select>
+          <button onclick="tolakUser('${u.user}')" class="text-xs text-red-500"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join('') : '<p class="text-sm text-gray-400">Belum ada pengguna.</p>';
+    }
+    async function tambahUserBaru() {
+      const targetUser = document.getElementById('newUser').value.trim();
+      const passRaw = document.getElementById('newPass').value;
+      const role = document.getElementById('newRole').value;
+      if (!targetUser || !passRaw) return alert('Lengkapi nama pengguna & sandi');
+      tampilkanLoading();
+      const encoder = new TextEncoder();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(passRaw));
+      const pass = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      const res = await panggilAPI({ aksi: 'tambahUser', targetUser, pass, role });
+      sembunyikanLoading();
+      if (!res.ok) return alert(res.msg || 'Gagal menambah pengguna');
+      document.getElementById('newUser').value = '';
+      document.getElementById('newPass').value = '';
+      muatPengguna();
+    }
+    async function setujuiUser(targetUser) {
+      tampilkanLoading();
+      await panggilAPI({ aksi: 'setujuiUser', targetUser });
+      sembunyikanLoading();
+      muatPengguna();
+    }
+    async function tolakUser(targetUser) {
+      if (!confirm(`Hapus pengguna "${targetUser}"?`)) return;
+      tampilkanLoading();
+      await panggilAPI({ aksi: 'hapusUser', targetUser });
+      sembunyikanLoading();
+      muatPengguna();
+    }
+    async function ubahRole(targetUser, role) {
+      await panggilAPI({ aksi: 'ubahRoleUser', targetUser, role });
+      muatPengguna();
+    }
+
+    // === TENTANG KAMI ===
+    let gambarTentangUrl = '';
+    async function muatKonten() {
+      const res = await panggilAPI({ aksi: 'bacaKonten' });
+      if (!res.ok) return;
+      document.getElementById('tJudul').value = res.tentang.judul || '';
+      document.getElementById('tTeks').value = res.tentang.teks || '';
+      gambarTentangUrl = res.tentang.gambar || '';
+      if (gambarTentangUrl) {
+        document.getElementById('tGambarPreview').src = gambarTentangUrl;
+        document.getElementById('tGambarPreview').classList.remove('hidden');
+      }
+      lokasiTerakhir = res.lokasi || {};
+      document.getElementById('lLat').value = lokasiTerakhir.lat || '';
+      document.getElementById('lLng').value = lokasiTerakhir.lng || '';
+      document.getElementById('lAlamat').value = lokasiTerakhir.alamat || '';
+      if (lokasiTerakhir.lat && lokasiTerakhir.lng) taruhMarker(parseFloat(lokasiTerakhir.lat), parseFloat(lokasiTerakhir.lng));
+    }
+    async function simpanTentang() {
+      tampilkanLoading();
+      const file = document.getElementById('tGambarFile').files[0];
+      if (file) {
+        const hasil = await uploadKeDrive(file);
+        if (hasil) gambarTentangUrl = hasil.url;
+      }
+      const data = {
+        tentangJudul: document.getElementById('tJudul').value.trim(),
+        tentangTeks: document.getElementById('tTeks').value.trim(),
+        tentangGambar: gambarTentangUrl
+      };
+      const res = await panggilAPI({ aksi: 'simpanKonten', data });
+      sembunyikanLoading();
+      if (!res.ok) return alert(res.msg || 'Gagal menyimpan');
+      alert('Tentang Kami berhasil disimpan');
+      muatKonten();
+    }
+
+    // === GALERI ===
+    async function muatGaleri() {
+      const res = await panggilAPI({ aksi: 'bacaGaleri' });
+      const grid = document.getElementById('gridGaleri');
+      if (!res.ok || !(res.data || []).length) { grid.innerHTML = '<p class="text-sm text-gray-400 col-span-full">Belum ada foto.</p>'; return; }
+      grid.innerHTML = res.data.map(g => `
+        <div class="relative group">
+          <img src="${g.url}" class="w-full h-28 object-cover rounded-lg border" />
+          <button onclick="hapusFotoGaleri('${g.id}')" class="absolute top-1 right-1 bg-red-600 text-white w-7 h-7 rounded-full text-xs"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join('');
+    }
+    async function tambahFotoGaleri() {
+      const file = document.getElementById('gFile').files[0];
+      if (!file) return alert('Pilih foto dulu');
+      tampilkanLoading();
+      const hasil = await uploadKeDrive(file);
+      if (hasil) await panggilAPI({ aksi: 'tambahGaleri', url: hasil.url, fileId: hasil.fileId });
+      sembunyikanLoading();
+      document.getElementById('gFile').value = '';
+      muatGaleri();
+    }
+    async function hapusFotoGaleri(id) {
+      if (!confirm('Hapus foto ini?')) return;
+      tampilkanLoading();
+      await panggilAPI({ aksi: 'hapusGaleri', id });
+      sembunyikanLoading();
+      muatGaleri();
+    }
+
+    // === KEGIATAN ===
+    async function muatKegiatan() {
+      const res = await panggilAPI({ aksi: 'bacaKegiatan' });
+      const list = document.getElementById('listKegiatan');
+      if (!res.ok || !(res.data || []).length) { list.innerHTML = '<p class="text-sm text-gray-400">Belum ada kegiatan.</p>'; return; }
+      list.innerHTML = res.data.map(k => `
+        <div class="flex gap-3 items-center border rounded-lg p-2">
+          ${k.url ? `<img src="${k.url}" class="w-16 h-16 object-cover rounded-lg" />` : ''}
+          <div class="flex-1">
+            <p class="font-medium text-sm">${k.judul || '-'}</p>
+            <p class="text-xs text-gray-500">${k.deskripsi || ''}</p>
+          </div>
+          <button onclick="hapusKegiatanItem('${k.id}')" class="text-red-500 text-sm"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join('');
+    }
+    async function tambahKegiatanBaru() {
+      const judul = document.getElementById('kJudul').value.trim();
+      const deskripsi = document.getElementById('kDeskripsi').value.trim();
+      const file = document.getElementById('kFile').files[0];
+      if (!judul) return alert('Judul wajib diisi');
+      tampilkanLoading();
+      let url = '', fileId = '';
+      if (file) {
+        const hasil = await uploadKeDrive(file);
+        if (hasil) { url = hasil.url; fileId = hasil.fileId; }
+      }
+      await panggilAPI({ aksi: 'tambahKegiatan', url, fileId, judul, deskripsi });
+      sembunyikanLoading();
+      document.getElementById('kJudul').value = '';
+      document.getElementById('kDeskripsi').value = '';
+      document.getElementById('kFile').value = '';
+      muatKegiatan();
+    }
+    async function hapusKegiatanItem(id) {
+      if (!confirm('Hapus kegiatan ini?')) return;
+      tampilkanLoading();
+      await panggilAPI({ aksi: 'hapusKegiatan', id });
+      sembunyikanLoading();
+      muatKegiatan();
+    }
+
+    // === LOKASI (Leaflet, gratis tanpa API key) ===
+    let peta = null, marker = null, lokasiTerakhir = {};
+    function initPeta() {
+      peta = L.map('petaLokasi').setView([-6.9, 109.05], 12); // default sekitar Brebes
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(peta);
+      peta.on('click', (e) => taruhMarker(e.latlng.lat, e.latlng.lng));
+    }
+    function taruhMarker(lat, lng) {
+      if (marker) peta.removeLayer(marker);
+      marker = L.marker([lat, lng]).addTo(peta);
+      peta.setView([lat, lng], 15);
+      document.getElementById('lLat').value = lat.toFixed(6);
+      document.getElementById('lLng').value = lng.toFixed(6);
+    }
+    async function simpanLokasi() {
+      const lat = document.getElementById('lLat').value;
+      const lng = document.getElementById('lLng').value;
+      const alamat = document.getElementById('lAlamat').value.trim();
+      if (!lat || !lng) return alert('Tentukan titik lokasi di peta dulu');
+      tampilkanLoading();
+      const res = await panggilAPI({ aksi: 'simpanKonten', data: { lokasiLat: lat, lokasiLng: lng, lokasiAlamat: alamat } });
+      sembunyikanLoading();
+      if (!res.ok) return alert(res.msg || 'Gagal menyimpan lokasi');
+      alert('Lokasi berhasil disimpan');
+    }
+
+    // === DATA LOKAL ===
+    function tampilkanJumlahCache() {
+      let jumlah = 0;
+      try { jumlah = (JSON.parse(localStorage.getItem(CACHE_KEY) || '[]')).length; } catch (e) {}
+      document.getElementById('jumlahCache').textContent = jumlah;
+    }
+    function hapusCacheLokal() {
+      if (!confirm('Hapus semua cache data lokal di perangkat ini? Data di Google Sheets TIDAK akan terhapus.')) return;
+      localStorage.removeItem(CACHE_KEY);
+      tampilkanJumlahCache();
+      alert('Cache lokal berhasil dihapus.');
+    }
+
+    // === INIT ===
+    document.addEventListener('DOMContentLoaded', () => {
+      initPeta();
+      muatPengguna();
+      muatKonten();
+      muatGaleri();
+      muatKegiatan();
+      tampilkanJumlahCache();
+    });
+  </script>
+</body>
+</html>

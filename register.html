@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daftar Akun — PAS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            prim: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%); }
+    .loading-spin { animation: spin 0.8s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="bg-prim-50 font-sans min-h-screen flex items-center justify-center p-4">
+
+  <div id="loadingOverlay" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-3">
+      <i class="fa-solid fa-circle-notch text-3xl text-prim-600 loading-spin"></i>
+      <span class="text-gray-700 font-medium">Memproses...</span>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+    <div class="text-center mb-6">
+      <div class="w-14 h-14 gradient-bg text-white rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-prim-800">Daftar Akun</h1>
+      <p class="text-sm text-gray-500 mt-1">Akun baru hanya bisa melihat data, dan perlu disetujui admin dulu sebelum bisa login.</p>
+    </div>
+
+    <div id="formArea" class="space-y-4">
+      <div>
+        <label class="text-sm text-gray-500">Nama Pengguna</label>
+        <input type="text" id="rUser" class="w-full p-3 border border-gray-300 rounded-lg mt-1 focus:ring-2 focus:ring-prim-400 outline-none" placeholder="mis. budi123" />
+      </div>
+      <div>
+        <label class="text-sm text-gray-500">Kata Sandi</label>
+        <div class="relative">
+          <input type="password" id="rPass" class="w-full p-3 pr-12 border border-gray-300 rounded-lg mt-1 focus:ring-2 focus:ring-prim-400 outline-none" />
+          <button type="button" onclick="lihatSandi('rPass','ikon1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <i id="ikon1" class="fa-solid fa-eye-slash"></i>
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="text-sm text-gray-500">Ulangi Kata Sandi</label>
+        <div class="relative">
+          <input type="password" id="rPass2" class="w-full p-3 pr-12 border border-gray-300 rounded-lg mt-1 focus:ring-2 focus:ring-prim-400 outline-none" />
+          <button type="button" onclick="lihatSandi('rPass2','ikon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <i id="ikon2" class="fa-solid fa-eye-slash"></i>
+          </button>
+        </div>
+      </div>
+      <p id="pesanError" class="text-red-500 text-sm hidden"></p>
+      <button onclick="daftar()" class="w-full py-3 gradient-bg text-white rounded-lg font-medium hover:opacity-90">Daftar</button>
+    </div>
+
+    <div id="suksesArea" class="hidden text-center">
+      <i class="fa-solid fa-circle-check text-5xl text-prim-600 mb-3"></i>
+      <p class="text-gray-700 font-medium">Registrasi berhasil!</p>
+      <p class="text-sm text-gray-500 mt-1">Akun kamu menunggu persetujuan admin. Setelah disetujui, kamu bisa login.</p>
+    </div>
+
+    <p class="text-center text-sm text-gray-500 mt-6">
+      Sudah punya akun? <a href="index.html" class="text-prim-700 font-medium hover:underline">Login</a>
+    </p>
+    <p class="text-center text-sm mt-1">
+      <a href="home.html" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-arrow-left mr-1"></i>Kembali ke Beranda</a>
+    </p>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzlMntECN8Yl13KgTQuPiBPQ8zUtNRnJ7cDOOKwQCwOVBPydYgVZy6xR1vRmqkRtzKe/exec";
+
+    async function hashPass(pass) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(pass);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function lihatSandi(inputId, ikonId) {
+      const input = document.getElementById(inputId);
+      const ikon = document.getElementById(ikonId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        ikon.className = 'fa-solid fa-eye';
+      } else {
+        input.type = 'password';
+        ikon.className = 'fa-solid fa-eye-slash';
+      }
+    }
+
+    function tampilkanError(pesan) {
+      const el = document.getElementById('pesanError');
+      el.textContent = pesan;
+      el.classList.remove('hidden');
+    }
+
+    async function daftar() {
+      const user = document.getElementById('rUser').value.trim();
+      const pass = document.getElementById('rPass').value;
+      const pass2 = document.getElementById('rPass2').value;
+      document.getElementById('pesanError').classList.add('hidden');
+
+      if (!user || !pass) return tampilkanError('Nama pengguna & sandi wajib diisi');
+      if (user.length < 3) return tampilkanError('Nama pengguna minimal 3 karakter');
+      if (pass.length < 6) return tampilkanError('Sandi minimal 6 karakter');
+      if (pass !== pass2) return tampilkanError('Ulangi sandi tidak sama');
+
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+      const h = await hashPass(pass);
+      try {
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ aksi: 'registerUser', user, pass: h })
+        }).then(r => r.json());
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        if (res.ok) {
+          document.getElementById('formArea').classList.add('hidden');
+          document.getElementById('suksesArea').classList.remove('hidden');
+        } else {
+          tampilkanError(res.msg || 'Registrasi gagal');
+        }
+      } catch (e) {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        tampilkanError('Tidak dapat terhubung ke server, coba lagi.');
+      }
+    }
+  </script>
+</body>
+</html>
