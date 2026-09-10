@@ -205,7 +205,12 @@
         user: localStorage.getItem('user') || '',
         userPass: localStorage.getItem('sandiHash') || ''
       }, payload);
-      return fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) }).then(r => r.json());
+      try {
+        const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) });
+        return await res.json();
+      } catch (e) {
+        return { ok: false, msg: 'Tidak bisa terhubung ke server (cek URL Apps Script/koneksi internet)' };
+      }
     }
     function tampilkanLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
     function sembunyikanLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
