@@ -58,6 +58,7 @@
       <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="kegiatan" onclick="pilihTab('kegiatan')"><i class="fa-solid fa-calendar-days mr-1"></i>Kegiatan</button>
       <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="lokasi" onclick="pilihTab('lokasi')"><i class="fa-solid fa-location-dot mr-1"></i>Lokasi</button>
       <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="lokal" onclick="pilihTab('lokal')"><i class="fa-solid fa-database mr-1"></i>Data Lokal</button>
+      <button class="tab-btn px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap bg-white" data-tab="hikmah" onclick="pilihTab('hikmah')"><i class="fa-solid fa-book-open mr-1"></i>Hikmah</button>
     </div>
 
     <!-- ===== TAB PENGGUNA ===== -->
@@ -181,9 +182,64 @@
       </div>
     </section>
 
+    <!-- ===== TAB HIKMAH (MODERASI) ===== -->
+    <section id="tab-hikmah" class="hidden space-y-4">
+      <p class="text-sm text-gray-500">Semua pengguna yang login bisa menulis/mengubah/menghapus artikel Hikmah, tapi perubahannya baru tampil ke publik setelah kamu setujui di sini.</p>
+
+      <div class="bg-white rounded-xl card-shadow p-4">
+        <h2 class="font-bold text-prim-800 mb-3">Artikel Baru</h2>
+        <div id="listHikmahBaru" class="space-y-3"><p class="text-sm text-gray-400">Memuat...</p></div>
+      </div>
+
+      <div class="bg-white rounded-xl card-shadow p-4">
+        <h2 class="font-bold text-prim-800 mb-3">Usulan Edit</h2>
+        <div id="listHikmahEdit" class="space-y-3"><p class="text-sm text-gray-400">Memuat...</p></div>
+      </div>
+
+      <div class="bg-white rounded-xl card-shadow p-4">
+        <h2 class="font-bold text-prim-800 mb-3">Permintaan Hapus</h2>
+        <div id="listHikmahHapus" class="space-y-3"><p class="text-sm text-gray-400">Memuat...</p></div>
+      </div>
+    </section>
+
   </main>
 
+  <!-- Modal Konfirmasi (pengganti confirm() bawaan browser) -->
+  <div id="konfirmModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl text-center">
+      <div class="w-14 h-14 bg-warn/10 text-warn rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <p id="konfirmPesan" class="text-gray-700 mb-6"></p>
+      <div class="flex gap-3">
+        <button id="konfirmBatal" class="flex-1 py-2 border rounded-lg">Batal</button>
+        <button id="konfirmYa" class="flex-1 py-2 bg-red-500 text-white rounded-lg font-medium">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // === MODAL KONFIRMASI (pengganti confirm() bawaan browser) ===
+    function konfirmasi(pesan, labelYa) {
+      return new Promise((resolve) => {
+        document.getElementById('konfirmPesan').textContent = pesan;
+        document.getElementById('konfirmYa').textContent = labelYa || 'Ya, Lanjutkan';
+        document.getElementById('konfirmModal').classList.remove('hidden');
+        const tombolYa = document.getElementById('konfirmYa');
+        const tombolBatal = document.getElementById('konfirmBatal');
+        function bersihkan(hasil) {
+          document.getElementById('konfirmModal').classList.add('hidden');
+          tombolYa.removeEventListener('click', onYa);
+          tombolBatal.removeEventListener('click', onBatal);
+          resolve(hasil);
+        }
+        function onYa() { bersihkan(true); }
+        function onBatal() { bersihkan(false); }
+        tombolYa.addEventListener('click', onYa);
+        tombolBatal.addEventListener('click', onBatal);
+      });
+    }
+
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzW5OJoQVZ-mJmQ0dC7Wvsg49BY6itH8niXebutRFFPqwU9PDAb9RJyeWeMIcWBg7uF/exec";
     const CACHE_KEY = 'pasDataCache';
 
@@ -245,11 +301,12 @@
       const tombolAktif = document.querySelector(`.tab-btn[data-tab="${nama}"]`);
       tombolAktif.classList.add('tab-aktif');
       tombolAktif.classList.remove('bg-white');
-      ['pengguna','tentang','galeri','kegiatan','lokasi','lokal'].forEach(t => {
+      ['pengguna','tentang','galeri','kegiatan','lokasi','lokal','hikmah'].forEach(t => {
         document.getElementById('tab-' + t).classList.toggle('hidden', t !== nama);
       });
       if (nama === 'lokasi') setTimeout(() => peta && peta.invalidateSize(), 100);
       if (nama === 'lokal') tampilkanJumlahCache();
+      if (nama === 'hikmah') muatModerasiHikmah();
     }
 
     // === PENGGUNA ===
@@ -306,7 +363,7 @@
       muatPengguna();
     }
     async function tolakUser(targetUser) {
-      if (!confirm(`Hapus pengguna "${targetUser}"?`)) return;
+      if (!(await konfirmasi(`Hapus pengguna "${targetUser}"?`, 'Ya, Hapus'))) return;
       tampilkanLoading();
       await panggilAPI({ aksi: 'hapusUser', targetUser });
       sembunyikanLoading();
@@ -377,7 +434,7 @@
       muatGaleri();
     }
     async function hapusFotoGaleri(id) {
-      if (!confirm('Hapus foto ini?')) return;
+      if (!(await konfirmasi('Hapus foto ini?', 'Ya, Hapus'))) return;
       tampilkanLoading();
       await panggilAPI({ aksi: 'hapusGaleri', id });
       sembunyikanLoading();
@@ -419,7 +476,7 @@
       muatKegiatan();
     }
     async function hapusKegiatanItem(id) {
-      if (!confirm('Hapus kegiatan ini?')) return;
+      if (!(await konfirmasi('Hapus kegiatan ini?', 'Ya, Hapus'))) return;
       tampilkanLoading();
       await panggilAPI({ aksi: 'hapusKegiatan', id });
       sembunyikanLoading();
@@ -460,11 +517,68 @@
       try { jumlah = (JSON.parse(localStorage.getItem(CACHE_KEY) || '[]')).length; } catch (e) {}
       document.getElementById('jumlahCache').textContent = jumlah;
     }
-    function hapusCacheLokal() {
-      if (!confirm('Hapus semua cache data lokal di perangkat ini? Data di Google Sheets TIDAK akan terhapus.')) return;
+    async function hapusCacheLokal() {
+      if (!(await konfirmasi('Hapus semua cache data lokal di perangkat ini? Data di Google Sheets TIDAK akan terhapus.', 'Ya, Hapus'))) return;
       localStorage.removeItem(CACHE_KEY);
       tampilkanJumlahCache();
       alert('Cache lokal berhasil dihapus.');
+    }
+
+    // === MODERASI HIKMAH ===
+    function escapeHtml(str) {
+      return (str || '').toString()
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function kartuHikmah(a, tombolHtml) {
+      return `
+        <div class="border rounded-lg p-3">
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <p class="font-semibold text-sm">${escapeHtml(a.judul)}</p>
+              <p class="text-xs text-gray-400">${escapeHtml(a.kategori)}${a.karangan ? ' &middot; Karangan: ' + escapeHtml(a.karangan) : ''}</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-600 mt-2 whitespace-pre-line">${escapeHtml(a.isi)}</p>
+          <p class="text-xs text-gray-400 mt-2">Oleh ${escapeHtml(a.penulis)} &middot; ${escapeHtml(a.tanggal)}</p>
+          <div class="flex gap-2 mt-3">${tombolHtml}</div>
+        </div>`;
+    }
+    async function muatModerasiHikmah() {
+      const res = await panggilAPI({ aksi: 'bacaHikmahModerasi' });
+      if (!res.ok) {
+        const pesan = `<p class="text-sm text-red-500">${res.msg || 'Gagal memuat'}</p>`;
+        document.getElementById('listHikmahBaru').innerHTML = pesan;
+        document.getElementById('listHikmahEdit').innerHTML = pesan;
+        document.getElementById('listHikmahHapus').innerHTML = pesan;
+        return;
+      }
+      const tombolSetujuiTolak = (id) => `
+        <button onclick="setujuiArtikelHikmah('${id}')" class="text-xs bg-prim-600 text-white px-3 py-1.5 rounded-lg">Setujui</button>
+        <button onclick="tolakArtikelHikmah('${id}')" class="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg">Tolak</button>`;
+
+      document.getElementById('listHikmahBaru').innerHTML = res.baru.length
+        ? res.baru.map((a) => kartuHikmah(a, tombolSetujuiTolak(a.id))).join('')
+        : '<p class="text-sm text-gray-400">Tidak ada artikel baru menunggu.</p>';
+
+      document.getElementById('listHikmahEdit').innerHTML = res.editUsulan.length
+        ? res.editUsulan.map((a) => kartuHikmah(a, tombolSetujuiTolak(a.id))).join('')
+        : '<p class="text-sm text-gray-400">Tidak ada usulan edit menunggu.</p>';
+
+      document.getElementById('listHikmahHapus').innerHTML = res.hapusUsulan.length
+        ? res.hapusUsulan.map((a) => kartuHikmah(a, `
+            <button onclick="setujuiArtikelHikmah('${a.id}')" class="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg">Setujui Hapus</button>
+            <button onclick="tolakArtikelHikmah('${a.id}')" class="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg">Batalkan</button>
+          `)).join('')
+        : '<p class="text-sm text-gray-400">Tidak ada permintaan hapus.</p>';
+    }
+    async function setujuiArtikelHikmah(id) {
+      await panggilAPI({ aksi: 'setujuiHikmah', id });
+      muatModerasiHikmah();
+    }
+    async function tolakArtikelHikmah(id) {
+      await panggilAPI({ aksi: 'tolakHikmah', id });
+      muatModerasiHikmah();
     }
 
     // === INIT ===
