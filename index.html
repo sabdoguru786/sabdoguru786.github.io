@@ -276,6 +276,16 @@
     <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl" data-aos="zoom-in">
       <h3 class="text-xl font-bold text-prim-700 mb-4" id="formTitle">Tambah Data</h3>
       <div class="space-y-3">
+        <div>
+          <label class="text-sm text-gray-500">Foto</label>
+          <div class="flex items-center gap-3 mt-1">
+            <div class="w-14 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0" style="height: 4.5rem;">
+              <img id="previewFotoImg" class="hidden w-full h-full object-cover" alt="Pratinjau" />
+              <i id="previewFotoIkon" class="fa-solid fa-image"></i>
+            </div>
+            <input type="file" id="fFoto" accept="image/*" onchange="pratinjauFoto()" class="text-sm flex-1" />
+          </div>
+        </div>
         <input type="text" id="fNama" placeholder="Nama" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" required />
         <input type="text" id="fAlamat" placeholder="Alamat" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prim-400 outline-none" />
         <div>
@@ -303,7 +313,8 @@
       </div>
       <h3 class="text-xl font-bold text-prim-800" id="profileNama">-</h3>
       <p class="text-sm text-gray-500 mb-1" id="profileRole">-</p>
-      <p class="text-xs text-gray-400 mb-6" id="profileKeterangan"></p>
+      <p class="text-xs text-gray-400 mb-4" id="profileKeterangan"></p>
+      <div id="profileDetail" class="text-left bg-gray-50 rounded-lg p-3 mb-4 text-sm space-y-1"></div>
       <div class="space-y-2">
         <button id="btnProfileSetting" onclick="window.location.href='setting.html'" class="hidden w-full py-2 gradient-bg text-white rounded-lg font-medium">
           <i class="fa-solid fa-gear mr-2"></i>Buka Setting
@@ -388,9 +399,7 @@
 
     // Logout selalu kembali ke Beranda (home.html)
     function logout() {
-      localStorage.removeItem('user');
-      localStorage.removeItem('sandiHash');
-      localStorage.removeItem('role');
+      ['user', 'sandiHash', 'role', 'namaLengkap', 'alamat', 'jamaah', 'munasiq'].forEach(k => localStorage.removeItem(k));
       window.location.href = 'home.html';
     }
 
@@ -400,7 +409,13 @@
 
     function openProfile() {
       document.getElementById('userMenu').classList.add('hidden');
-      document.getElementById('profileNama').textContent = localStorage.getItem('user') || '-';
+      const username = localStorage.getItem('user') || '-';
+      const namaLengkap = localStorage.getItem('namaLengkap') || '';
+      const alamat = localStorage.getItem('alamat') || '';
+      const jamaah = localStorage.getItem('jamaah') || '';
+      const munasiq = localStorage.getItem('munasiq') || '';
+
+      document.getElementById('profileNama').textContent = namaLengkap || username;
       const labelPeran = { admin: 'Admin (akses penuh)', subAdmin: 'Sub Admin (kelola data)', user: 'Pengguna (lihat saja)' };
       document.getElementById('profileRole').textContent = labelPeran[peran] || peran;
       const ket = {
@@ -409,6 +424,17 @@
         user: 'Hanya bisa melihat data, tidak bisa mengubah apapun.'
       };
       document.getElementById('profileKeterangan').textContent = ket[peran] || '';
+
+      const baris = [];
+      baris.push(['Username', username]);
+      if (namaLengkap) baris.push(['Nama Lengkap', namaLengkap]);
+      if (alamat) baris.push(['Alamat', alamat]);
+      if (jamaah) baris.push(["Jama'ah", jamaah]);
+      if (munasiq) baris.push(['Munasiq', munasiq]);
+      document.getElementById('profileDetail').innerHTML = baris.map(([label, nilai]) =>
+        `<div class="flex justify-between gap-2"><span class="text-gray-500">${label}</span><span class="font-medium text-gray-700 text-right">${nilai}</span></div>`
+      ).join('');
+
       document.getElementById('btnProfileSetting').classList.toggle('hidden', peran !== 'admin');
       document.getElementById('profileModal').classList.remove('hidden');
     }
@@ -572,8 +598,13 @@
       tb.innerHTML = arr.map((d) => `
         <tr class="border-b hover:bg-prim-50">
           <td class="p-3">
-            ${d.nama || '-'}
-            ${d.ditandai ? `<span title="${d.ditandai}" class="ml-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600"><i class="fa-solid fa-triangle-exclamation"></i> Ditandai</span>` : ''}
+            <div class="flex items-center gap-2">
+              ${d.foto
+                ? `<img src="${d.foto}" class="w-7 h-9 object-cover rounded flex-shrink-0" alt="">`
+                : `<span class="w-7 h-9 rounded bg-gray-100 flex items-center justify-center text-gray-300 flex-shrink-0"><i class="fa-solid fa-image text-xs"></i></span>`}
+              <span>${d.nama || '-'}</span>
+              ${d.ditandai ? `<span title="${d.ditandai}" class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600"><i class="fa-solid fa-triangle-exclamation"></i> Ditandai</span>` : ''}
+            </div>
           </td>
           <td class="p-3">
             <span class="px-2 py-1 rounded-full text-xs font-medium ${
@@ -610,13 +641,50 @@
       document.getElementById('fAlamat').value = '';
       document.getElementById('fJenis').value = 'Umum';
       document.getElementById('editId').value = '';
+      document.getElementById('fFoto').value = '';
+      document.getElementById('previewFotoImg').classList.add('hidden');
+      document.getElementById('previewFotoIkon').classList.remove('hidden');
     }
     function closeForm() {
       document.getElementById('formModal').classList.add('hidden');
     }
 
+    // Pratinjau langsung di form begitu file dipilih (sebelum benar-benar diupload saat Simpan)
+    function pratinjauFoto() {
+      const file = document.getElementById('fFoto').files[0];
+      if (!file) return;
+      const gambar = document.getElementById('previewFotoImg');
+      const ikon = document.getElementById('previewFotoIkon');
+      const reader = new FileReader();
+      reader.onload = () => {
+        gambar.src = reader.result;
+        gambar.classList.remove('hidden');
+        ikon.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+    function bacaFileSebagaiBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    async function uploadFotoKeDrive(file) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert('Ukuran foto maksimal 8MB');
+        return null;
+      }
+      const base64 = await bacaFileSebagaiBase64(file);
+      const res = await panggilAPI({ aksi: 'uploadFoto', base64, mime: file.type, namaFile: file.name });
+      if (!res.ok) { alert('Gagal unggah foto: ' + (res.msg || '')); return null; }
+      return res; // { ok, url, fileId }
+    }
+
     // Simpan lokal dulu (instan) → kirim ke Google Sheets di belakang layar
-    function saveData() {
+    // (kalau ada foto baru, tunggu upload ke Drive dulu supaya URL-nya siap sebelum disimpan)
+    async function saveData() {
       const nama = document.getElementById('fNama').value.trim();
       if (!nama) { alert('Nama wajib diisi'); return; }
       const id = document.getElementById('editId').value || ('d' + Date.now());
@@ -624,9 +692,18 @@
       const jenis = document.getElementById('fJenis').value;
 
       const idx = semuaData.findIndex(d => d.id === id);
+      let foto = idx > -1 ? (semuaData[idx].foto || '') : '';
+      const fileFoto = document.getElementById('fFoto').files[0];
+      if (fileFoto) {
+        tampilkanLoading();
+        const hasil = await uploadFotoKeDrive(fileFoto);
+        sembunyikanLoading();
+        if (hasil) foto = hasil.url;
+      }
+
       const status = idx > -1 ? semuaData[idx].status : 'belum';
       const ditandai = idx > -1 ? semuaData[idx].ditandai : '';
-      const rowBaru = { id, nama, alamat, jenis, status, tgl: new Date().toLocaleString('id-ID'), ditandai };
+      const rowBaru = { id, nama, alamat, jenis, status, tgl: new Date().toLocaleString('id-ID'), ditandai, foto };
       if (idx > -1) semuaData[idx] = rowBaru; else semuaData.push(rowBaru);
       simpanCacheLokal(semuaData);
       closeForm();
@@ -634,7 +711,7 @@
       terapkanFilter();
       hitungStatistik();
 
-      panggilAPI({ aksi: 'simpan', id, nama, alamat, jenis, status }).then(res => {
+      panggilAPI({ aksi: 'simpan', id, nama, alamat, jenis, status, foto }).then(res => {
         if (!res.ok) alert('Gagal sinkron ke Google Sheets: ' + (res.msg || ''));
       }).catch(() => {});
     }
@@ -686,14 +763,26 @@
     }
 
     // Inisialisasi
+    // Halaman Data Pembagian ini khusus admin/subAdmin, ATAU role user yang jama'ahnya
+    // Salikin/Salikah dengan Munasiq "Brebes Selatan" — selain itu diarahkan ke hikmah.html
+    function bolehAksesIndex(role, jamaah, munasiq) {
+      if (role !== 'user') return true;
+      const munasiqCocok = (munasiq || '').trim().toLowerCase().includes('brebes selatan');
+      return (jamaah === 'Salikin' || jamaah === 'Salikah') && munasiqCocok;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       if (!localStorage.getItem('user') || !localStorage.getItem('sandiHash')) {
         location.href = 'register.html';
         return;
       }
+      peran = localStorage.getItem('role') || 'admin';
+      if (!bolehAksesIndex(peran, localStorage.getItem('jamaah'), localStorage.getItem('munasiq'))) {
+        location.href = 'hikmah.html';
+        return;
+      }
       AOS.init({ duration: 600, once: true });
       loggedIn = true;
-      peran = localStorage.getItem('role') || 'admin';
       terapkanPeran();
       loadData('all');
     });
