@@ -1,8 +1,11 @@
-const CACHE_NAME = 'PAS-v1';
+const CACHE_NAME = 'PAS-v2';
 const ASSET_CACHE = [
   './',
   './index.html',
   './detail.html',
+  './home.html',
+  './register.html',
+  './setting.html',
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css',
   'https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css',
