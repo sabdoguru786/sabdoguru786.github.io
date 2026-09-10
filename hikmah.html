@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hikmah — PAS</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <!-- PWA Manifest — perlu ada di sini juga (bukan cuma index.html) supaya tombol Instal
+       bisa muncul untuk pengguna yang "tinggal" di halaman ini -->
+  <link rel="manifest" href="app.webmanifest.json" />
+  <meta name="theme-color" content="#16a34a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="PAS" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
@@ -119,6 +128,9 @@
       <div class="p-2">
         <button onclick="openProfile()" class="w-full text-left px-4 py-2 hover:bg-prim-50 rounded flex items-center gap-2">
           <i class="fa-solid fa-id-card text-prim-600"></i> Profile
+        </button>
+        <button id="btnInstal" onclick="pasangPWA()" class="hidden w-full text-left px-4 py-2 hover:bg-prim-50 rounded flex items-center gap-2">
+          <i class="fa-solid fa-download text-prim-600"></i> Instal
         </button>
         <button onclick="logout()" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded flex items-center gap-2">
           <i class="fa-solid fa-right-from-bracket"></i> Keluar
@@ -288,8 +300,11 @@
     // yang jama'ahnya Salikin/Salikah dengan Munasiq "Brebes Selatan"
     function bolehAksesIndex(role, jamaah, munasiq) {
       if (role !== 'user') return true;
+      // Samakan dulu formatnya (trim + lowercase) sebelum dibandingkan — jangan sensitif
+      // besar/kecil huruf, sama seperti pengecekan Munasiq di bawah ini.
+      const jamaahNorm = (jamaah || '').trim().toLowerCase();
       const munasiqCocok = (munasiq || '').trim().toLowerCase().includes('brebes selatan');
-      return (jamaah === 'Salikin' || jamaah === 'Salikah') && munasiqCocok;
+      return (jamaahNorm === 'salikin' || jamaahNorm === 'salikah') && munasiqCocok;
     }
 
     function openUserMenu() {
@@ -351,7 +366,7 @@
         const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) });
         return await res.json();
       } catch (e) {
-        return { ok: false, msg: 'Tidak bisa terhubung ke server (cek URL Apps Script/koneksi internet)' };
+        return { ok: false, msg: 'Tidak bisa terhubung ke server. Cek URL Apps Script/koneksi internet.' };
       }
     }
     function tampilkanLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
@@ -673,6 +688,31 @@
       if (!res.ok) return alert(res.msg || 'Gagal menghapus');
       if (res.msg) alert(res.msg);
       muatArtikel();
+    }
+
+    // === PEMASANGAN PWA (tombol "Instal" di menu navbar) ===
+    // Semua pengguna boleh memasang PWA ini ke perangkatnya, apa pun rolenya — ini cuma
+    // kenyamanan device, bukan soal hak akses data. Makanya tombolnya juga ada di sini
+    // (bukan cuma index.html), karena user yang tidak lolos syarat akses index.html
+    // "tinggal" di halaman ini dan sebelumnya tidak pernah melihat tombol Instal sama sekali.
+    let pemasangPWA = null;
+    function sudahTerinstall() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      pemasangPWA = e;
+      if (!sudahTerinstall()) document.getElementById('btnInstal').classList.remove('hidden');
+    });
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('btnInstal').classList.add('hidden');
+      pemasangPWA = null;
+    });
+    async function pasangPWA() {
+      if (!pemasangPWA) return;
+      const hasil = await pemasangPWA.prompt();
+      if (hasil.outcome === 'accepted') document.getElementById('btnInstal').classList.add('hidden');
+      pemasangPWA = null;
     }
   </script>
 </body>
