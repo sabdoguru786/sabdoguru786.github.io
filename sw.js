@@ -1,4 +1,4 @@
-const CACHE_NAME = 'PAS-v3';
+const CACHE_NAME = 'PAS-v5';
 const ASSET_CACHE = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const ASSET_CACHE = [
   './home.html',
   './register.html',
   './setting.html',
+  './hikmah.html',
   // Catatan: cdn.tailwindcss.com sengaja TIDAK dimasukkan — CDN itu tidak mengirim header CORS
   // sehingga selalu gagal diambil oleh Service Worker (beda dari cdnjs/jsdelivr di bawah ini).
   // Dia tetap jalan normal lewat <script> tag biasa, cuma tidak bisa di-precache untuk offline.
@@ -38,8 +39,26 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Sajikan dari cache jika tersedia
+// Halaman HTML (navigasi) pakai network-first — selalu ambil versi terbaru dari server dulu
+// supaya update kode langsung kepakai, baru fallback ke cache kalau memang lagi offline.
+// Aset statis (CSS/JS library) tetap cache-first supaya cepat & bisa dipakai offline.
 self.addEventListener('fetch', e => {
+  const isHalamanHTML = e.request.mode === 'navigate' ||
+    (e.request.method === 'GET' && e.request.headers.get('accept')?.includes('text/html'));
+
+  if (isHalamanHTML) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const salinan = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, salinan));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request))
   );
