@@ -299,7 +299,7 @@
           </button>
         </div>
       </div>
-      <button onclick="doLogin()" class="w-full mt-6 py-3 gradient-bg text-white rounded-lg font-medium hover:opacity-90">Masuk</button>
+      <button id="btnLogin" onclick="doLogin()" class="w-full mt-6 py-3 gradient-bg text-white rounded-lg font-medium hover:opacity-90 disabled:opacity-60">Masuk</button>
       <p id="loginErr" class="text-red-500 text-sm mt-2 text-center hidden">Nama atau sandi salah!</p>
       <p class="text-center text-sm text-gray-500 mt-4">
         Belum punya akun? <a href="register.html" class="text-prim-700 font-medium hover:underline">Daftar</a>
@@ -390,6 +390,13 @@
     }
 
     async function doLogin() {
+      const tombol = document.getElementById('btnLogin');
+      if (tombol.disabled) return; // cegah klik dobel selagi proses login
+      document.getElementById('loginErr').classList.add('hidden');
+      tombol.disabled = true;
+      tombol.textContent = 'Sedang masuk...';
+      tampilkanLoading();
+
       const u = document.getElementById('uName').value.trim();
       const p = document.getElementById('uPass').value.trim();
       const h = await hashPass(p);
@@ -402,6 +409,9 @@
       } catch (e) {
         document.getElementById('loginErr').textContent = 'Tidak bisa terhubung ke server. Cek URL Apps Script/koneksi internet.';
         document.getElementById('loginErr').classList.remove('hidden');
+        tombol.disabled = false;
+        tombol.textContent = 'Masuk';
+        sembunyikanLoading();
         return;
       }
       if (res.ok) {
@@ -417,6 +427,9 @@
         document.getElementById('loginErr').textContent = res.msg || 'Nama atau sandi salah!';
         document.getElementById('loginErr').classList.remove('hidden');
       }
+      tombol.disabled = false;
+      tombol.textContent = 'Masuk';
+      sembunyikanLoading();
     }
 
     // Logout selalu kembali ke Beranda (home.html)
