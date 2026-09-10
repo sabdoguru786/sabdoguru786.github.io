@@ -460,29 +460,37 @@
     }
 
     // Data CRUD
-    async function loadData(filter = 'all') {
-      tampilkanLoading();
+        async function loadData(filter = 'all') {
       if (!loggedIn) return;
+      tampilkanLoading();
       currentFilter = filter;
       const labels = {
         all: 'Semua Data', belum: 'Belum Diambil', sudah: 'Sudah Diambil',
-        none: 'Tidak Ambil', salikin: 'Salikin & Salikah', Umum: 'Jenis Umum'
+        none: 'Tidak Ambil', salikin: 'Salikin & Salikah', umum: 'Jenis Umum'
       };
       document.getElementById('filterInfo').textContent = labels[filter];
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ aksi: 'baca', filter })
-      }).then(r => r.json());
-      semuaData = res.data || [];
-      isiFilterAlamat();
-      terapkanFilter();
-      document.getElementById('totalAll').textContent = res.stats.all || 0;
-      document.getElementById('totalBelum').textContent = res.stats.belum || 0;
-      document.getElementById('totalSudah').textContent = res.stats.sudah || 0;
-      document.getElementById('totalNone').textContent = res.stats.none || 0;
-      document.getElementById('totalUmum').textContent = res.stats.umum || 0;
-      document.getElementById('totalSalikin').textContent = res.stats.salikin || 0;
-      sembunyikanLoading();
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ aksi: 'baca', filter })
+        }).then(r => r.json());
+        
+        semuaData = res.data || [];
+        isiFilterAlamat();
+        terapkanFilter();
+        document.getElementById('totalAll').textContent = res.stats.all || 0;
+        document.getElementById('totalBelum').textContent = res.stats.belum || 0;
+        document.getElementById('totalSudah').textContent = res.stats.sudah || 0;
+        document.getElementById('totalNone').textContent = res.stats.none || 0;
+        document.getElementById('totalUmum').textContent = res.stats.umum || 0;
+        document.getElementById('totalSalikin').textContent = res.stats.salikin || 0;
+      } catch (err) {
+        alert('Gagal terhubung ke server! Cek URL GAS_URL.');
+        console.error(err);
+      }
+      
+      sembunyikanLoading(); // ✅ SELALU dipanggil, sukses ATAU gagal
     }
 
     function isiFilterAlamat() {
